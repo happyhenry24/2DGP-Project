@@ -5,42 +5,48 @@ import monster_controller as mc
 
 pico2d.open_canvas(800, 600)
 
+# 지도 타일 로드
 map_drawer.load_tiles()
-mc.load_skeleton_images()
-mc.load_slime_images()
-mc.generate_monsters(3200, 3200)
 
-walk_sprites = {
-    direction: [
-        pico2d.load_image(
-            f'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Lords Of Pain - Old School Isometric Assets/playable character/knight/knight_armed_walk/{direction}/knight_armed_walk_{direction}_{cc.direction_angle_mapping[direction]}_{i}.png')
-        for i in range(8)
-    ]
-    for direction in cc.direction_angle_mapping
-}
+# 스프라이트 로드
+cc.load_character_sprites()
+mc.load_spike_fiend_images()
 
-idle_sprites = {
-    direction: pico2d.load_image(
-        f'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Lords Of Pain - Old School Isometric Assets/playable character/knight/knight_armed_idle/{direction}/knight_armed_idle_{direction}_{cc.direction_angle_mapping[direction]}_0.png')
-    for direction in cc.direction_angle_mapping
-}
 
+# 카메라 클래스 정의
+class Camera:
+    def __init__(self, width, height):
+        self.x, self.y = 0, 0
+        self.width, self.height = width, height
+
+    def update(self, target_x, target_y):
+        self.x = target_x - self.width // 2
+        self.y = target_y - self.height // 2
+
+
+# 캐릭터와 카메라 생성
 character = cc.Character()
-camera = cc.Camera(800, 600)
+camera = Camera(800, 600)
+
+# 몬스터 생성
+mc.generate_monsters(3600, 3600)
 
 running = True
 while running:
-    running = cc.handle_character_events(character, camera)
+    # 이벤트 처리
+    running = cc.handle_character_events(character, camera, mc.monsters)
     character.update()
+    mc.update_monsters(character.x, character.y)
     camera.update(character.x, character.y)
 
     pico2d.clear_canvas()
     map_drawer.draw_map(camera.x, camera.y)
 
-    mc.draw_monsters(character.y, camera.x, camera.y)
-    character.draw(camera.x, camera.y, walk_sprites, idle_sprites)
+    # 캐릭터 그리기
+    character.draw(camera.x, camera.y, cc.walk_sprites, cc.idle_sprites, cc.attack_sprites)
 
-    mc.update_monsters()
+    # 몬스터 그리기
+    mc.draw_monsters(character.y, camera.x, camera.y)
 
     pico2d.update_canvas()
     pico2d.delay(0.01)
