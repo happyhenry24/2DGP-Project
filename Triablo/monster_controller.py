@@ -2,14 +2,12 @@ import pico2d
 import random
 import math
 import time
-import character_controller as cc  # 캐릭터는 16방향, 몬스터는 8방향 사용
+import character_controller as cc
 
-# 기본 애니메이션 스프라이트 저장 변수
 spike_fiend_idle_sprites = {}
 spike_fiend_walk_sprites = {}
 spike_fiend_hit_sprites = {}
 
-# 몬스터는 8방향을 사용합니다.
 direction_order_8 = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE']
 direction_angle_mapping_8 = {
     'S': 270.0, 'SW': 225.0, 'W': 180.0, 'NW': 135.0, 'N': 90.0,
@@ -19,7 +17,6 @@ direction_angle_mapping_8 = {
 def load_spike_fiend_images():
     global spike_fiend_idle_sprites, spike_fiend_walk_sprites, spike_fiend_hit_sprites
 
-    # Idle 스프라이트 로딩 (8방향 * 8프레임)
     spike_fiend_idle_sprites = {
         direction: [
             pico2d.load_image(
@@ -29,7 +26,6 @@ def load_spike_fiend_images():
         for idx, direction in enumerate(direction_order_8)
     }
 
-    # Walk 스프라이트 로딩 (8방향 * 9프레임)
     spike_fiend_walk_sprites = {
         direction: [
             pico2d.load_image(
@@ -39,7 +35,6 @@ def load_spike_fiend_images():
         for idx, direction in enumerate(direction_order_8)
     }
 
-    # 맞는 애니메이션 스프라이트 로딩 (8방향 * 6프레임)
     spike_fiend_hit_sprites = {
         direction: [
             pico2d.load_image(
@@ -69,8 +64,8 @@ class Monster:
         self.is_hit = False
         self.hit_frame = 0
         self.hit_animation_done = False
-        self.has_entered_range = False  # 추적 범위에 들어온 적이 있는지 확인
-        self.chasing_on_attack = False  # 공격을 받아 추적 상태인지 여부를 관리
+        self.has_entered_range = False
+        self.chasing_on_attack = False
 
     def update(self, player_x, player_y):
         if self.is_hit:
@@ -85,21 +80,17 @@ class Monster:
         distance_to_player = math.sqrt((player_x - self.x) ** 2 + (player_y - self.y) ** 2)
 
         if distance_to_player <= self.chase_distance:
-            # 범위 안에 플레이어가 들어오면 추적 시작
             self.has_entered_range = True
             self.chase_player(player_x, player_y)
         elif self.chasing_on_attack:
-            # 공격받아 추적 중인데, 추적 범위에 한번이라도 들어왔고 현재는 나가있을 경우 패트롤로 돌아감
             if self.has_entered_range and distance_to_player > self.chase_distance:
                 self.chasing_on_attack = False
                 self.returning_to_spawn = True
             else:
                 self.chase_player(player_x, player_y)
         elif self.returning_to_spawn:
-            # 반환 중
             self.move_to_spawn()
         else:
-            # 패트롤 상태
             self.patrol()
 
     def patrol(self):
@@ -144,7 +135,7 @@ class Monster:
             self.patrol_delay = random.uniform(2, 5)
             self.is_idle = False
             self.distance = 0
-            self.has_entered_range = False  # 패트롤 복귀 시 범위 기록 초기화
+            self.has_entered_range = False
         else:
             angle = math.degrees(math.atan2(dy, dx)) % 360
             self.direction = self.get_direction_by_angle(angle)
@@ -188,8 +179,6 @@ class Monster:
         self.hit_animation_done = False
         self.hit_frame = 0
         self.chasing_on_attack = True
-
-
 
 monsters = []
 
