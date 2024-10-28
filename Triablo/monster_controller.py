@@ -7,15 +7,16 @@ import character_controller as cc
 spike_fiend_idle_sprites = {}
 spike_fiend_walk_sprites = {}
 spike_fiend_hit_sprites = {}
+spike_fiend_attack_sprites = {}
 
 direction_order_8 = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE']
 direction_angle_mapping_8 = {
-    'S': 270.0, 'SW': 225.0, 'W': 180.0, 'NW': 135.0, 'N': 90.0,
-    'NE': 45.0, 'E': 0.0, 'SE': 315.0
+    'S': (247.5, 292.5), 'SW': (225.0, 247.5), 'W': (157.5, 202.5), 'NW': (112.5, 157.5),
+    'N': (67.5, 112.5), 'NE': (22.5, 67.5), 'E': (337.5, 22.5), 'SE': (292.5, 337.5)
 }
 
 def load_spike_fiend_images():
-    global spike_fiend_idle_sprites, spike_fiend_walk_sprites, spike_fiend_hit_sprites
+    global spike_fiend_idle_sprites, spike_fiend_walk_sprites, spike_fiend_hit_sprites, spike_fiend_attack_sprites
 
     spike_fiend_idle_sprites = {
         direction: [
@@ -44,12 +45,23 @@ def load_spike_fiend_images():
         for idx, direction in enumerate(direction_order_8)
     }
 
+    spike_fiend_attack_sprites = {
+        direction: [
+            pico2d.load_image(
+                f'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/PC_Computer_Diablo2_ASpike_Fiend_Attack/tile{frame_idx:03}.png')
+            for frame_idx in range(16 * idx, 16 * (idx + 1))
+        ]
+        for idx, direction in enumerate(direction_order_8)
+    }
+
 class Monster:
     def __init__(self, x, y):
         self.x, self.y = x, y
         self.spawn_x, self.spawn_y = x, y
         self.direction = random.choice(direction_order_8)
         self.frame = 0
+        self.walk_frame_delay = 0
+        self.walk_frame_speed = 5
         self.speed = 2
         self.distance = 0
         self.patrol_distance = random.randint(50, 200)
@@ -58,12 +70,16 @@ class Monster:
         self.walk_sprites = spike_fiend_walk_sprites
         self.idle_sprites = spike_fiend_idle_sprites
         self.hit_sprites = spike_fiend_hit_sprites
+        self.attack_sprites = spike_fiend_attack_sprites
         self.is_idle = False
         self.returning_to_spawn = False
         self.chase_distance = 200
+        self.attack_distance = 50
         self.is_hit = False
         self.hit_frame = 0
-        self.hit_animation_done = False
+        self.is_attacking = False
+        self.attack_frame = 0
+        self.attack_animation_done = False
         self.has_entered_range = False
         self.chasing_on_attack = False
 
@@ -71,7 +87,6 @@ class Monster:
         if self.is_hit:
             if self.hit_frame >= len(self.hit_sprites[self.direction]):
                 self.is_hit = False
-                self.hit_animation_done = True
                 self.hit_frame = 0
             else:
                 self.hit_frame += 0.2
@@ -79,7 +94,9 @@ class Monster:
 
         distance_to_player = math.sqrt((player_x - self.x) ** 2 + (player_y - self.y) ** 2)
 
-        if distance_to_player <= self.chase_distance:
+        if distance_to_player <= self.attack_distance:
+            self.start_attack(player_x, player_y)
+        elif distance_to_player <= self.chase_distance:
             self.has_entered_range = True
             self.chase_player(player_x, player_y)
         elif self.chasing_on_attack:
@@ -93,11 +110,18 @@ class Monster:
         else:
             self.patrol()
 
+    def start_attack(self, player_x, player_y):
+        if not self.is_attacking:
+            self.is_attacking = True
+            self.attack_frame = 0
+            dx, dy = player_x - self.x, player_y - self.y
+            angle = math.degrees(math.atan2(dy, dx)) % 360
+            self.direction = self.get_direction_by_angle(angle)
+
     def patrol(self):
-        current_time = time.time()
         if not self.is_idle:
-            dx = math.cos(math.radians(direction_angle_mapping_8[self.direction])) * self.speed
-            dy = math.sin(math.radians(direction_angle_mapping_8[self.direction])) * self.speed
+            dx = math.cos(math.radians(direction_angle_mapping_8[self.direction][0])) * self.speed
+            dy = math.sin(math.radians(direction_angle_mapping_8[self.direction][0])) * self.speed
             self.x += dx
             self.y += dy
             self.distance += self.speed
@@ -105,15 +129,16 @@ class Monster:
 
             if self.distance >= self.patrol_distance:
                 self.is_idle = True
-                self.timer = current_time
+                self.timer = time.time()
                 self.patrol_delay = random.uniform(2, 5)
         else:
-            if current_time - self.timer > self.patrol_delay:
+            if time.time() - self.timer > self.patrol_delay:
                 self.is_idle = False
                 self.distance = 0
                 self.direction = self.get_opposite_direction(self.direction)
 
     def chase_player(self, player_x, player_y):
+        self.is_attacking = False
         self.returning_to_spawn = False
         self.is_idle = False
         dx, dy = player_x - self.x, player_y - self.y
@@ -144,8 +169,8 @@ class Monster:
             self.update_frame()
 
     def get_direction_by_angle(self, angle):
-        for direction, dir_angle in direction_angle_mapping_8.items():
-            if abs(angle - dir_angle) < 22.5 or abs(angle - dir_angle) > 337.5:
+        for direction, (min_angle, max_angle) in direction_angle_mapping_8.items():
+            if min_angle <= angle < max_angle or (min_angle > max_angle and (angle >= min_angle or angle < max_angle)):
                 return direction
         return 'S'
 
@@ -157,26 +182,37 @@ class Monster:
         return opposite_map.get(direction, 'E')
 
     def update_frame(self):
-        max_frames = len(self.walk_sprites[self.direction]) if not self.is_idle else len(self.idle_sprites[self.direction])
-        self.frame = (self.frame + 1) % max_frames
+        max_frames = len(self.walk_sprites[self.direction]) if not self.is_idle else len(
+            self.idle_sprites[self.direction])
+
+        self.walk_frame_delay += 1
+        if self.walk_frame_delay >= self.walk_frame_speed:
+            self.frame = (self.frame + 1) % max_frames
+            self.walk_frame_delay = 0
 
     def draw(self, camera_x, camera_y):
-        if self.is_hit and not self.hit_animation_done:
+        if self.is_hit:
             frames = self.hit_sprites[self.direction]
             hit_index = min(int(self.hit_frame), len(frames) - 1)
             frames[hit_index].draw(self.x - camera_x, self.y - camera_y)
+        elif self.is_attacking:
+            frames = self.attack_sprites[self.direction]
+            attack_index = min(int(self.attack_frame), len(frames) - 1)
+            frames[attack_index].draw(self.x - camera_x, self.y - camera_y)
+            self.attack_frame += 0.2
+            if self.attack_frame >= len(frames):
+                self.is_attacking = False
+                self.attack_frame = 0
         else:
             sprite_list = self.walk_sprites if not self.is_idle else self.idle_sprites
-            if self.direction in sprite_list:
-                frames = sprite_list[self.direction]
-                if 0 <= self.frame < len(frames):
-                    frames[self.frame].draw(self.x - camera_x, self.y - camera_y)
-                else:
-                    self.frame = 0
+            frames = sprite_list[self.direction]
+            if 0 <= self.frame < len(frames):
+                frames[self.frame].draw(self.x - camera_x, self.y - camera_y)
+            else:
+                self.frame = 0
 
     def hit(self):
         self.is_hit = True
-        self.hit_animation_done = False
         self.hit_frame = 0
         self.chasing_on_attack = True
 
