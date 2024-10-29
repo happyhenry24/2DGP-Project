@@ -41,7 +41,7 @@ while running:
 
     mc.draw_monsters(character.y, camera.x, camera.y)
 
-    game_hud.draw()
+    game_hud.draw(character.hp)
 
     pico2d.update_canvas()
     pico2d.delay(0.01)
