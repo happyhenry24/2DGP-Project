@@ -79,11 +79,21 @@ class Monster:
         self.hit_frame = 0
         self.is_attacking = False
         self.attack_frame = 0
-        self.attack_animation_done = False
         self.has_entered_range = False
         self.chasing_on_attack = False
+        self.attack_damage = 5
+        self.has_dealt_damage = False
 
-    def update(self, player_x, player_y):
+    def start_attack(self, player_x, player_y):
+        if not self.is_attacking:
+            self.is_attacking = True
+            self.attack_frame = 0
+            self.has_dealt_damage = False
+            dx, dy = player_x - self.x, player_y - self.y
+            angle = math.degrees(math.atan2(dy, dx)) % 360
+            self.direction = self.get_direction_by_angle(angle)
+
+    def update(self, player_x, player_y, character):
         if self.is_hit:
             if self.hit_frame >= len(self.hit_sprites[self.direction]):
                 self.is_hit = False
@@ -96,6 +106,11 @@ class Monster:
 
         if distance_to_player <= self.attack_distance:
             self.start_attack(player_x, player_y)
+            if self.is_attacking:
+                if not self.has_dealt_damage:
+                    character.take_damage(self.attack_damage)
+                    self.has_dealt_damage = True
+                self.attack_frame += 0.2
         elif distance_to_player <= self.chase_distance:
             self.has_entered_range = True
             self.chase_player(player_x, player_y)
@@ -109,14 +124,6 @@ class Monster:
             self.move_to_spawn()
         else:
             self.patrol()
-
-    def start_attack(self, player_x, player_y):
-        if not self.is_attacking:
-            self.is_attacking = True
-            self.attack_frame = 0
-            dx, dy = player_x - self.x, player_y - self.y
-            angle = math.degrees(math.atan2(dy, dx)) % 360
-            self.direction = self.get_direction_by_angle(angle)
 
     def patrol(self):
         if not self.is_idle:
@@ -233,6 +240,6 @@ def draw_monsters(player_y, camera_x, camera_y):
         if monster.y <= player_y:
             monster.draw(camera_x, camera_y)
 
-def update_monsters(player_x, player_y):
+def update_monsters(player_x, player_y, character):
     for monster in monsters:
-        monster.update(player_x, player_y)
+        monster.update(player_x, player_y, character)

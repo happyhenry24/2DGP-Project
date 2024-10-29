@@ -31,7 +31,7 @@ running = True
 while running:
     running = cc.handle_character_events(character, camera, mc.monsters)
     character.update()
-    mc.update_monsters(character.x, character.y)
+    mc.update_monsters(character.x, character.y, character)
     camera.update(character.x, character.y)
 
     pico2d.clear_canvas()

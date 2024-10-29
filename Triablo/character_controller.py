@@ -13,6 +13,7 @@ walk_sprites = {}
 idle_sprites = {}
 attack_sprites = {}
 
+
 def load_character_sprites():
     global walk_sprites, idle_sprites, attack_sprites
 
@@ -43,6 +44,7 @@ def load_character_sprites():
         for idx, direction in enumerate(direction_angle_mapping)
     }
 
+
 class Character:
     def __init__(self):
         self.x, self.y = 3200, 3200
@@ -63,6 +65,14 @@ class Character:
 
         self.highlight = pico2d.load_image(
             'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Lords Of Pain - Old School Isometric Assets/user interface/highlight/highlight_yellow.png')
+
+        self.hp = 62
+
+    def take_damage(self, damage):
+        self.hp -= damage
+        if self.hp < 0:
+            self.hp = 0
+        print(f"[DEBUG] Character HP changed: {self.hp}")
 
     def update(self):
         if self.is_attacking:
@@ -125,6 +135,7 @@ class Character:
     def stop(self):
         self.is_moving = False
         self.is_following_mouse = False
+
 
 def handle_character_events(character, camera, monsters):
     events = pico2d.get_events()
