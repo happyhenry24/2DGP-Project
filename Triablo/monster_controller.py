@@ -2,7 +2,7 @@ import pico2d
 import random
 import math
 import time
-import character_controller as cc
+import hud
 
 spike_fiend_idle_sprites = {}
 spike_fiend_walk_sprites = {}
@@ -95,8 +95,10 @@ class Monster:
         self.attack_damage = 5
         self.has_dealt_damage = False
         self.hp = 10
+        self.max_hp = 10
         self.is_dead = False
         self.death_frame = 0
+        self.hp_bar = hud.MonsterHPBar(self)
 
     def start_attack(self, player_x, player_y):
         if not self.is_attacking:
@@ -107,6 +109,20 @@ class Monster:
             angle = math.degrees(math.atan2(dy, dx)) % 360
             self.direction = self.get_direction_by_angle(angle)
 
+    def receive_damage(self, damage):
+        if not self.is_dead:
+            self.hp -= damage
+            if self.hp <= 0:
+                self.hp = 0
+                self.is_dead = True
+                self.death_frame = 0
+                self.is_hit = False
+            else:
+                self.is_hit = True
+                self.hit_frame = 0
+                self.chasing_on_attack = True
+            self.hp_bar.update_hp(self.hp)
+
     def update(self, player_x, player_y, character):
         if self.is_dead:
             self.death_frame += 0.2
@@ -114,7 +130,7 @@ class Monster:
                 monsters.remove(self)
             return
 
-        if self.is_hit and not self.is_dead:
+        if self.is_hit:
             if self.hit_frame >= len(self.hit_sprites[self.direction]):
                 self.is_hit = False
                 self.hit_frame = 0
@@ -239,18 +255,10 @@ class Monster:
             else:
                 self.frame = 0
 
-    def hit(self):
-        if self.hp > 0:
-            self.hp -= 2
-            if self.hp <= 0:
-                self.hp = 0
-                self.is_dead = True
-                self.death_frame = 0
-                self.is_hit = False
-            else:
-                self.is_hit = True
-                self.hit_frame = 0
-        self.chasing_on_attack = True
+        self.hp_bar.draw(camera_x, camera_y)
+
+def monster_hit(monster, damage):
+    monster.receive_damage(damage)
 
 monsters = []
 

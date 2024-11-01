@@ -1,6 +1,7 @@
 import pico2d
 import math
 import time
+import monster_controller as mc
 
 direction_angle_mapping = {
     'S': (247.5, 292.5), 'SSW': (225.0, 247.5), 'SW': (202.5, 225.0), 'SWW': (180.0, 202.5),
@@ -80,6 +81,10 @@ class Character:
                 self.hp = 0
                 self.is_dead = True
                 print("당신은 죽었습니다.")
+
+    def attack_monster(self, monster):
+        damage = 2
+        mc.monster_hit(monster, damage)
 
     def respawn(self):
         self.x, self.y = self.spawn_x, self.spawn_y
@@ -187,7 +192,7 @@ def handle_character_events(character, camera, monsters):
                 for monster in monsters:
                     distance = math.sqrt((monster.x - mouse_x) ** 2 + (monster.y - mouse_y) ** 2)
                     if distance <= 50:
-                        monster.hit()
+                        monster.receive_damage(2)
                         break
                 if not character.is_attacking:
                     character.attack(mouse_x, mouse_y)
@@ -197,3 +202,4 @@ def handle_character_events(character, camera, monsters):
             character.is_following_mouse = True
             character.move_to(event.x + camera.x, 600 - event.y + camera.y)
     return True
+

@@ -2,10 +2,8 @@ import pico2d
 
 HUD_PATH = "C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/HUD/"
 
-
 def load_hp_images():
     return [pico2d.load_image(f"{HUD_PATH}HP/HPBarVar1_{i:02}.png") for i in range(63)]
-
 
 class HUD:
     def __init__(self, screen_width, screen_height):
@@ -13,7 +11,7 @@ class HUD:
         self.screen_height = screen_height
 
         self.hud_back, self.hp_bar, self.mana_bar, self.skill_slots, self.hud_front, self.left_demon, self.right_angel = self.load_hud_images()
-        self.hp_images = load_hp_images()  # Load all HP images
+        self.hp_images = load_hp_images()
 
         self.scale_x = screen_width / self.hud_back.w
         self.hud_center_x = screen_width // 2
@@ -30,7 +28,7 @@ class HUD:
         return hud_back, hp_bar, mana_bar, skill_slots, hud_front, left_demon, right_angel
 
     def draw_hp_bar(self, current_hp):
-        hp_index = max(0, min(62, current_hp))  # Ensure HP index is within range
+        hp_index = max(0, min(62, current_hp))
         hp_image = self.hp_images[hp_index]
         hp_x = hp_image.w * self.scale_x / 2
         hp_y = hp_image.h * self.scale_x / 2
@@ -38,7 +36,7 @@ class HUD:
 
     def draw(self, current_hp):
         self.hud_back.draw(self.hud_center_x, self.hud_bottom_y, self.screen_width, self.hud_back.h * self.scale_x)
-        self.draw_hp_bar(current_hp)  # Draw HP bar based on current HP
+        self.draw_hp_bar(current_hp)
 
         mana_x = self.screen_width - (self.mana_bar.w * self.scale_x / 2)
         mana_y = self.mana_bar.h * self.scale_x / 2
@@ -59,6 +57,26 @@ class HUD:
         self.hud_front.draw(self.hud_center_x, self.hud_bottom_y, self.hud_front.w * self.scale_x,
                             self.hud_front.h * self.scale_x)
 
+class MonsterHPBar:
+    def __init__(self, monster):
+        self.monster = monster
+        self.bar_width = 20
+        self.bar_height = 4
+        self.hp = monster.hp
+        self.red_hp = pico2d.load_image("C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/RedHP.png")
+        self.white_hp = pico2d.load_image("C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/WhiteHP.png")
+
+    def update_hp(self, hp):
+        self.hp = hp
+
+    def draw(self, camera_x, camera_y):
+        filled_width = int((self.hp / self.monster.max_hp) * self.bar_width)
+
+        for i in range(filled_width):
+            self.red_hp.draw(self.monster.x - camera_x - self.bar_width // 2 + i, self.monster.y - camera_y + 40)
+
+        for i in range(filled_width, self.bar_width):
+            self.white_hp.draw(self.monster.x - camera_x - self.bar_width // 2 + i, self.monster.y - camera_y + 40)
 
 def create_hud(screen_width, screen_height):
     return HUD(screen_width, screen_height)
