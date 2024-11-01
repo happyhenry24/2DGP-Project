@@ -29,20 +29,24 @@ game_hud = hud.create_hud(800, 600)
 
 running = True
 while running:
+
     running = cc.handle_character_events(character, camera, mc.monsters)
-    character.update()
+
+    if not character.is_dead:
+        character.update()
     mc.update_monsters(character.x, character.y, character)
     camera.update(character.x, character.y)
 
     pico2d.clear_canvas()
     map_drawer.draw_map(camera.x, camera.y)
-
-    character.draw(camera.x, camera.y, cc.walk_sprites, cc.idle_sprites, cc.attack_sprites)
-
     mc.draw_monsters(character.y, camera.x, camera.y)
 
-    game_hud.draw(character.hp)
+    if character.is_dead:
+        character.draw_death_message()
+    else:
+        character.draw(camera.x, camera.y, cc.walk_sprites, cc.idle_sprites, cc.attack_sprites)
 
+    game_hud.draw(character.hp)
     pico2d.update_canvas()
     pico2d.delay(0.01)
 
