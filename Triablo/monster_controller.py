@@ -8,6 +8,7 @@ spike_fiend_idle_sprites = {}
 spike_fiend_walk_sprites = {}
 spike_fiend_hit_sprites = {}
 spike_fiend_attack_sprites = {}
+spike_fiend_death_sprites = {}
 
 direction_order_8 = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE']
 direction_angle_mapping_8 = {
@@ -16,7 +17,7 @@ direction_angle_mapping_8 = {
 }
 
 def load_spike_fiend_images():
-    global spike_fiend_idle_sprites, spike_fiend_walk_sprites, spike_fiend_hit_sprites, spike_fiend_attack_sprites
+    global spike_fiend_idle_sprites, spike_fiend_walk_sprites, spike_fiend_hit_sprites, spike_fiend_attack_sprites, spike_fiend_death_sprites
 
     spike_fiend_idle_sprites = {
         direction: [
@@ -54,6 +55,15 @@ def load_spike_fiend_images():
         for idx, direction in enumerate(direction_order_8)
     }
 
+    spike_fiend_death_sprites = {
+        direction: [
+            pico2d.load_image(
+                f'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/PC_Computer_Diablo2_ASpike_Fiend_Death/tile{frame_idx:03}.png')
+            for frame_idx in range(14 * idx, 14 * (idx + 1))
+        ]
+        for idx, direction in enumerate(direction_order_8)
+    }
+
 class Monster:
     def __init__(self, x, y):
         self.x, self.y = x, y
@@ -71,6 +81,7 @@ class Monster:
         self.idle_sprites = spike_fiend_idle_sprites
         self.hit_sprites = spike_fiend_hit_sprites
         self.attack_sprites = spike_fiend_attack_sprites
+        self.death_sprites = spike_fiend_death_sprites
         self.is_idle = False
         self.returning_to_spawn = False
         self.chase_distance = 200
@@ -83,6 +94,9 @@ class Monster:
         self.chasing_on_attack = False
         self.attack_damage = 5
         self.has_dealt_damage = False
+        self.hp = 10
+        self.is_dead = False
+        self.death_frame = 0
 
     def start_attack(self, player_x, player_y):
         if not self.is_attacking:
@@ -94,7 +108,13 @@ class Monster:
             self.direction = self.get_direction_by_angle(angle)
 
     def update(self, player_x, player_y, character):
-        if self.is_hit:
+        if self.is_dead:
+            self.death_frame += 0.2
+            if self.death_frame >= len(self.death_sprites[self.direction]):
+                monsters.remove(self)
+            return
+
+        if self.is_hit and not self.is_dead:
             if self.hit_frame >= len(self.hit_sprites[self.direction]):
                 self.is_hit = False
                 self.hit_frame = 0
@@ -198,16 +218,17 @@ class Monster:
             self.walk_frame_delay = 0
 
     def draw(self, camera_x, camera_y):
-        if self.is_hit:
-            frames = self.hit_sprites[self.direction]
-            hit_index = min(int(self.hit_frame), len(frames) - 1)
-            frames[hit_index].draw(self.x - camera_x, self.y - camera_y)
+        if self.is_dead:
+            death_index = min(int(self.death_frame), len(self.death_sprites[self.direction]) - 1)
+            self.death_sprites[self.direction][death_index].draw(self.x - camera_x, self.y - camera_y)
+        elif self.is_hit:
+            hit_index = min(int(self.hit_frame), len(self.hit_sprites[self.direction]) - 1)
+            self.hit_sprites[self.direction][hit_index].draw(self.x - camera_x, self.y - camera_y)
         elif self.is_attacking:
-            frames = self.attack_sprites[self.direction]
-            attack_index = min(int(self.attack_frame), len(frames) - 1)
-            frames[attack_index].draw(self.x - camera_x, self.y - camera_y)
+            attack_index = min(int(self.attack_frame), len(self.attack_sprites[self.direction]) - 1)
+            self.attack_sprites[self.direction][attack_index].draw(self.x - camera_x, self.y - camera_y)
             self.attack_frame += 0.2
-            if self.attack_frame >= len(frames):
+            if self.attack_frame >= len(self.attack_sprites[self.direction]):
                 self.is_attacking = False
                 self.attack_frame = 0
         else:
@@ -219,8 +240,16 @@ class Monster:
                 self.frame = 0
 
     def hit(self):
-        self.is_hit = True
-        self.hit_frame = 0
+        if self.hp > 0:
+            self.hp -= 2
+            if self.hp <= 0:
+                self.hp = 0
+                self.is_dead = True
+                self.death_frame = 0
+                self.is_hit = False
+            else:
+                self.is_hit = True
+                self.hit_frame = 0
         self.chasing_on_attack = True
 
 monsters = []
