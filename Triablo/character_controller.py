@@ -13,11 +13,11 @@ direction_angle_mapping = {
 walk_sprites = {}
 idle_sprites = {}
 attack_sprites = {}
-highlight = None
 dead_sign = None
 
+
 def load_character_sprites():
-    global walk_sprites, idle_sprites, attack_sprites, highlight, dead_sign
+    global walk_sprites, idle_sprites, attack_sprites, dead_sign
 
     walk_sprites = {
         direction: [
@@ -46,10 +46,8 @@ def load_character_sprites():
         for idx, direction in enumerate(direction_angle_mapping)
     }
 
-    highlight = pico2d.load_image(
-        'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Lords Of Pain - Old School Isometric Assets/user interface/highlight/highlight_yellow.png')
-
     dead_sign = pico2d.load_image('C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/DeadSign.png')
+
 
 class Character:
     def __init__(self):
@@ -71,8 +69,6 @@ class Character:
         self.attack_frame = 0
         self.attack_frame_speed = 1.0
         self.attack_cooldown = False
-        global highlight
-        self.highlight = highlight
 
     def take_damage(self, damage):
         if not self.is_dead:
@@ -119,8 +115,6 @@ class Character:
 
     def draw(self, camera_x, camera_y, walk_sprites, idle_sprites, attack_sprites):
         if not self.is_dead:
-            self.highlight.draw(self.x - camera_x, self.y - camera_y)
-
             if self.is_attacking:
                 attack_sprites[self.direction][int(self.attack_frame)].draw(self.x - camera_x, self.y - camera_y)
             elif self.is_moving:
@@ -147,6 +141,15 @@ class Character:
             self.is_moving = False
             self.direction = self.calculate_direction(target_x, target_y)
 
+            closest_monster = min(
+                (monster for monster in mc.monsters if
+                 math.sqrt((monster.x - target_x) ** 2 + (monster.y - target_y) ** 2) <= 50),
+                key=lambda monster: math.sqrt((monster.x - target_x) ** 2 + (monster.y - target_y) ** 2),
+                default=None
+            )
+            if closest_monster:
+                self.attack_monster(closest_monster)
+
     def calculate_direction(self, target_x, target_y):
         angle = math.degrees(math.atan2(target_y - self.y, target_x - self.x))
         if angle < 0:
@@ -171,6 +174,7 @@ class Character:
             return True
         return True
 
+
 def handle_character_events(character, camera, monsters):
     events = pico2d.get_events()
     for event in events:
@@ -189,11 +193,6 @@ def handle_character_events(character, camera, monsters):
             mouse_x, mouse_y = event.x + camera.x, 600 - event.y + camera.y
 
             if elapsed_time < 0.2:
-                for monster in monsters:
-                    distance = math.sqrt((monster.x - mouse_x) ** 2 + (monster.y - mouse_y) ** 2)
-                    if distance <= 50:
-                        monster.receive_damage(2)
-                        break
                 if not character.is_attacking:
                     character.attack(mouse_x, mouse_y)
             else:
@@ -202,4 +201,3 @@ def handle_character_events(character, camera, monsters):
             character.is_following_mouse = True
             character.move_to(event.x + camera.x, 600 - event.y + camera.y)
     return True
-
