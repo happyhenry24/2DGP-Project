@@ -15,7 +15,6 @@ idle_sprites = {}
 attack_sprites = {}
 dead_sign = None
 
-
 def load_character_sprites():
     global walk_sprites, idle_sprites, attack_sprites, dead_sign
 
@@ -47,7 +46,6 @@ def load_character_sprites():
     }
 
     dead_sign = pico2d.load_image('C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/DeadSign.png')
-
 
 class Character:
     def __init__(self):
@@ -174,7 +172,6 @@ class Character:
             return True
         return True
 
-
 def handle_character_events(character, camera, monsters):
     events = pico2d.get_events()
     for event in events:
@@ -190,7 +187,8 @@ def handle_character_events(character, camera, monsters):
         elif event.type == pico2d.SDL_MOUSEBUTTONUP and event.button == pico2d.SDL_BUTTON_RIGHT:
             character.mouse_held = False
             elapsed_time = time.time() - character.mouse_down_time
-            mouse_x, mouse_y = event.x + camera.x, 600 - event.y + camera.y
+            mouse_x = (event.x if event.x is not None else 0) + (camera.x if camera.x is not None else 0)
+            mouse_y = (600 - event.y if event.y is not None else 0) + (camera.y if camera.y is not None else 0)
 
             if elapsed_time < 0.2:
                 if not character.is_attacking:
@@ -198,6 +196,8 @@ def handle_character_events(character, camera, monsters):
             else:
                 character.stop()
         elif character.mouse_held and time.time() - character.mouse_down_time >= 0.2:
+            mouse_x = (event.x if event.x is not None else 0) + (camera.x if camera.x is not None else 0)
+            mouse_y = (600 - event.y if event.y is not None else 0) + (camera.y if camera.y is not None else 0)
             character.is_following_mouse = True
-            character.move_to(event.x + camera.x, 600 - event.y + camera.y)
+            character.move_to(mouse_x, mouse_y)
     return True
