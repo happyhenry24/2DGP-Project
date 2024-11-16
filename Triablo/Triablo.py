@@ -33,16 +33,7 @@ while running:
     running = cc.handle_character_events(character, camera, mc.monsters)
 
     events = pico2d.get_events()
-    for event in events:
-        if event.type == pico2d.SDL_KEYDOWN:
-            if event.key == pico2d.SDLK_1:
-                game_hud.toggle_skill('Magic_Arrow')
-            elif event.key == pico2d.SDLK_2:
-                game_hud.toggle_skill('Fire_Arrow')
-            elif event.key == pico2d.SDLK_3:
-                game_hud.toggle_skill('Ice_Arrow')
-            elif event.key == pico2d.SDLK_4:
-                game_hud.toggle_skill('Exploding_Arrow')
+    game_hud.handle_hud_events(events)
 
     if not character.is_dead:
         character.update()

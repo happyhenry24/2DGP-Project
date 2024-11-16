@@ -84,6 +84,18 @@ class HUD:
     def toggle_skill(self, skill_name):
         self.current_active_skill = skill_name if self.current_active_skill != skill_name else None
 
+    def handle_hud_events(self, events):
+        for event in events:
+            if event.type == pico2d.SDL_KEYDOWN:
+                if event.key == pico2d.SDLK_1:
+                    self.toggle_skill('Magic_Arrow')
+                elif event.key == pico2d.SDLK_2:
+                    self.toggle_skill('Fire_Arrow')
+                elif event.key == pico2d.SDLK_3:
+                    self.toggle_skill('Ice_Arrow')
+                elif event.key == pico2d.SDLK_4:
+                    self.toggle_skill('Exploding_Arrow')
+
 class MonsterHPBar:
     def __init__(self, monster):
         self.monster = monster
