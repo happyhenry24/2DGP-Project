@@ -15,8 +15,8 @@ class HUD:
             'Magic_Arrow_Off': pico2d.load_image(HUD_PATH + "Magic_Arrow_Off.png"),
             'Fire_Arrow': pico2d.load_image(HUD_PATH + "Fire_Arrow.png"),
             'Fire_Arrow_Off': pico2d.load_image(HUD_PATH + "Fire_Arrow_Off.png"),
-            'Ice_Arrow': pico2d.load_image(HUD_PATH + "Ice_Arrow.png"),
-            'Ice_Arrow_Off': pico2d.load_image(HUD_PATH + "Ice_Arrow_Off.png"),
+            'Multiple_Arrow': pico2d.load_image(HUD_PATH + "Multiple_Arrow.png"),
+            'Multiple_Arrow_Off': pico2d.load_image(HUD_PATH + "Multiple_Arrow_Off.png"),
             'Exploding_Arrow': pico2d.load_image(HUD_PATH + "Exploding_Arrow.png"),
             'Exploding_Arrow_Off': pico2d.load_image(HUD_PATH + "Exploding_Arrow_Off.png")
         }
@@ -76,7 +76,7 @@ class HUD:
         skill_x = self.hud_center_x
         skill_y = self.hud_bottom_y
 
-        skills = ['Magic_Arrow', 'Fire_Arrow', 'Ice_Arrow', 'Exploding_Arrow']
+        skills = ['Magic_Arrow', 'Fire_Arrow', 'Multiple_Arrow', 'Exploding_Arrow']
         for skill in skills:
             image = self.skill_images[skill if self.current_active_skill == skill else f"{skill}_Off"]
             image.draw(skill_x, skill_y, image.w * self.scale_x, image.h * self.scale_x)
@@ -92,7 +92,7 @@ class HUD:
                 elif event.key == pico2d.SDLK_2:
                     self.toggle_skill('Fire_Arrow')
                 elif event.key == pico2d.SDLK_3:
-                    self.toggle_skill('Ice_Arrow')
+                    self.toggle_skill('Multiple_Arrow')
                 elif event.key == pico2d.SDLK_4:
                     self.toggle_skill('Exploding_Arrow')
 
