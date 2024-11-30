@@ -287,6 +287,6 @@ def check_arrow_collision(arrows):
     for arrow in arrows:
         for monster in monsters:
             if math.sqrt((monster.x - arrow.x) ** 2 + (monster.y - arrow.y) ** 2) <= 30:
-                monster.receive_damage(5)
+                monster.receive_damage(arrow.damage)
                 arrow.is_active = False
                 break

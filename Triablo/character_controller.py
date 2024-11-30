@@ -3,6 +3,9 @@ import math
 import time
 import monster_controller as mc
 
+from skills import MagicArrow
+
+
 direction_angle_mapping = {
     'S': (258.75, 281.25), 'SSW': (236.25, 258.75), 'SW': (213.75, 236.25), 'WSW': (191.25, 213.75),
     'W': (168.75, 191.25), 'WNW': (146.25, 168.75), 'NW': (123.75, 146.25), 'NNW': (101.25, 123.75),
@@ -48,36 +51,6 @@ def load_character_sprites():
 
     dead_sign = pico2d.load_image('C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/DeadSign.png')
 
-class Arrow:
-    def __init__(self, x, y, target_x, target_y):
-        self.x, self.y = x, y
-        self.speed = 10
-
-        dx, dy = target_x - x, target_y - y
-        self.angle = math.degrees(math.atan2(dy, dx))
-        self.direction = (dx, dy)
-
-        try:
-            self.image = pico2d.load_image(
-                f'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Arrow/tile004.png'
-            )
-        except OSError:
-            print("Failed to load image for arrow")
-            self.image = None
-
-        self.is_active = True
-
-    def update(self, screen_width, screen_height, camera_x, camera_y):
-        self.x += math.cos(math.radians(self.angle)) * self.speed
-        self.y += math.sin(math.radians(self.angle)) * self.speed
-
-        if self.x < camera_x or self.y < camera_y or self.x > camera_x + screen_width or self.y > camera_y + screen_height:
-            self.is_active = False
-
-    def draw(self, camera_x, camera_y):
-        if self.is_active and self.image:
-            self.image.rotate_draw(math.radians(self.angle), self.x - camera_x, self.y - camera_y)
-
 class Character:
     def __init__(self):
         self.x, self.y = 3200, 3200
@@ -103,6 +76,7 @@ class Character:
         self.last_attack_time = 0
         self.mouse_held = False
         self.keyboard_active = False
+        self.skills_manager = None
 
     def take_damage(self, damage):
         if not self.is_dead:
@@ -110,7 +84,6 @@ class Character:
             if self.hp <= 0:
                 self.hp = 0
                 self.is_dead = True
-                print("당신은 죽었습니다.")
 
     def attack_monster(self, monster):
         damage = 2
@@ -179,7 +152,7 @@ class Character:
             self.last_attack_time = current_time
             self.direction = self.calculate_direction(target_x, target_y)
 
-            arrow = Arrow(self.x, self.y, target_x, target_y)
+            arrow = self.skills_manager.create_arrow(self.x, self.y, target_x, target_y)
             self.arrows.append(arrow)
 
             self.is_attacking = True

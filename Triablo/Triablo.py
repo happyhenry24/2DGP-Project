@@ -11,6 +11,8 @@ map_drawer.load_tiles()
 cc.load_character_sprites()
 mc.load_spike_fiend_images()
 
+skills_manager = skills.SkillsManager()
+
 class Camera:
     def __init__(self, width, height):
         self.x, self.y = 0, 0
@@ -21,11 +23,12 @@ class Camera:
         self.y = target_y - self.height // 2
 
 character = cc.Character()
+character.skills_manager = skills_manager
+
 camera = Camera(800, 600)
 mc.generate_monsters(3600, 3600)
 
 game_hud = hud.HUD(800, 600)
-skills_manager = skills.SkillsManager()
 
 running = True
 while running:
