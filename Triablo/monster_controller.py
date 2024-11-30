@@ -3,6 +3,7 @@ import random
 import math
 import time
 import hud
+from skills import FireArrow
 
 spike_fiend_idle_sprites = {}
 spike_fiend_walk_sprites = {}
@@ -99,6 +100,7 @@ class Monster:
         self.is_dead = False
         self.death_frame = 0
         self.hp_bar = hud.MonsterHPBar(self)
+        self.last_damage_time = 0
 
     def start_attack(self, player_x, player_y):
         if not self.is_attacking:
@@ -116,7 +118,6 @@ class Monster:
                 self.hp = 0
                 self.is_dead = True
                 self.death_frame = 0
-                self.is_hit = False
             else:
                 self.is_hit = True
                 self.hit_frame = 0
@@ -282,11 +283,15 @@ def update_monsters(player_x, player_y, character):
         monster.update(player_x, player_y, character)
     check_arrow_collision(character.arrows)
 
-
 def check_arrow_collision(arrows):
     for arrow in arrows:
         for monster in monsters:
             if math.sqrt((monster.x - arrow.x) ** 2 + (monster.y - arrow.y) ** 2) <= 30:
-                monster.receive_damage(arrow.damage)
-                arrow.is_active = False
+                if isinstance(arrow, FireArrow):
+                    if not hasattr(monster, "last_fire_arrow_damage_time") or time.time() - monster.last_fire_arrow_damage_time >= 0.5:
+                        monster.receive_damage(arrow.damage)
+                        monster.last_fire_arrow_damage_time = time.time()
+                else:
+                    monster.receive_damage(arrow.damage)
+                    arrow.is_active = False
                 break

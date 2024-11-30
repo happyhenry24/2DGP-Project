@@ -1,5 +1,9 @@
 import pico2d
 import math
+import time
+
+active_fire_paths = []  # 현재 활성화된 불장판 리스트
+
 
 class Arrow:
     def __init__(self, x, y, target_x, target_y, damage=2, image_path=None):
@@ -39,6 +43,84 @@ class MagicArrow(Arrow):
         if self.images and self.is_active:
             self.images[self.frame].rotate_draw(math.radians(self.angle), self.x - camera_x, self.y - camera_y)
 
+class FirePath:
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+        self.start_time = time.time()
+        self.duration = 5  # 5초 지속
+        self.create_frames = [
+            pico2d.load_image(f'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Fire_Arrow/tile{i:03}.png')
+            for i in range(13)  # tile000 ~ tile012
+        ]
+        self.loop_frames = [
+            pico2d.load_image(f'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Fire_Arrow/tile{i:03}.png')
+            for i in range(13, 26)  # tile013 ~ tile025
+        ]
+        self.destroy_frames = self.create_frames[::-1]
+        self.frame_index = 0
+        self.state = 'create'
+
+    def update(self):
+        elapsed = time.time() - self.start_time
+        if elapsed > self.duration:
+            self.state = 'destroy'
+        elif elapsed > len(self.create_frames) * 0.1:
+            self.state = 'loop'
+
+        if self.state == 'create':
+            self.frame_index = min(len(self.create_frames) - 1, int(elapsed / 0.1))
+        elif self.state == 'loop':
+            self.frame_index = int(elapsed / 0.1) % len(self.loop_frames)
+        elif self.state == 'destroy':
+            self.frame_index = min(len(self.destroy_frames) - 1, int(elapsed / 0.1))
+
+    def draw(self, camera_x, camera_y):
+        if self.state == 'create':
+            frame = self.create_frames[self.frame_index]
+        elif self.state == 'loop':
+            frame = self.loop_frames[self.frame_index]
+        elif self.state == 'destroy':
+            frame = self.destroy_frames[self.frame_index]
+        frame.draw(self.x - camera_x, self.y - camera_y)
+
+    def is_active(self):
+        return self.state != 'destroy' or self.frame_index < len(self.destroy_frames)
+
+
+class FireArrow(Arrow):
+    def __init__(self, x, y, target_x, target_y, image_path):
+        super().__init__(x, y, target_x, target_y, image_path=image_path)
+
+    def update(self, screen_width, screen_height, camera_x, camera_y):
+        super().update(screen_width, screen_height, camera_x, camera_y)
+        if self.is_active:
+            # 일정 거리마다 불장판 생성
+            if len(active_fire_paths) == 0 or \
+               math.sqrt((self.x - active_fire_paths[-1].x) ** 2 + (self.y - active_fire_paths[-1].y) ** 2) >= 15:
+                active_fire_paths.append(FirePath(self.x, self.y))
+
+    def draw(self, camera_x, camera_y):
+        super().draw(camera_x, camera_y)
+
+def update_fire_paths(screen_width, screen_height, camera_x, camera_y, monsters):
+    global active_fire_paths
+    for fire_path in active_fire_paths:
+        fire_path.update()
+
+        for monster in monsters:
+            if not monster.is_dead:
+                distance_squared = (monster.x - fire_path.x) ** 2 + (monster.y - fire_path.y) ** 2
+                if distance_squared <= (15 ** 2):  # 반지름 15의 충돌 범위
+                    if not hasattr(monster, "last_damage_time") or time.time() - monster.last_damage_time >= 0.5:  # 시간 간격 0.5초
+                        monster.receive_damage(2)
+                        monster.last_damage_time = time.time()
+    # 비활성화된 불장판 제거
+    active_fire_paths = [path for path in active_fire_paths if path.is_active()]
+
+
+def draw_fire_paths(camera_x, camera_y):
+    for fire_path in active_fire_paths:
+        fire_path.draw(camera_x, camera_y)
 
 
 class SkillsManager:
@@ -71,8 +153,20 @@ class SkillsManager:
                 return MagicArrow(x, y, target_x, target_y)
             else:
                 return None
-        return Arrow(x, y, target_x, target_y,
-                     image_path='C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Arrow/tile004.png')
+        elif self.current_mode == "Fire_Arrow":
+            mana_cost = 10
+            if character.mana >= mana_cost:
+                character.mana = max(0, character.mana - mana_cost)
+                return FireArrow(
+                    x, y, target_x, target_y,
+                    image_path='C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Arrow/tile004.png'
+                )
+            else:
+                return None
+        return Arrow(
+            x, y, target_x, target_y,
+            image_path='C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Arrow/tile004.png'
+        )
 
     def get_current_mode(self):
         return self.current_mode or "None"

@@ -53,10 +53,13 @@ while running:
         character.update(camera.x, camera.y)
 
     mc.update_monsters(character.x, character.y, character)
+    skills.update_fire_paths(800, 600, camera.x, camera.y, mc.monsters)
+
     camera.update(character.x, character.y)
 
     pico2d.clear_canvas()
     map_drawer.draw_map(camera.x, camera.y)
+    skills.draw_fire_paths(camera.x, camera.y)
     mc.draw_monsters(character.y, camera.x, camera.y)
 
     if character.is_dead:
