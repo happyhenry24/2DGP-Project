@@ -67,11 +67,11 @@ class Arrow:
 
         self.is_active = True
 
-    def update(self):
+    def update(self, screen_width, screen_height, camera_x, camera_y):
         self.x += math.cos(math.radians(self.angle)) * self.speed
         self.y += math.sin(math.radians(self.angle)) * self.speed
 
-        if self.x < 0 or self.y < 0 or self.x > 6400 or self.y > 6400:
+        if self.x < camera_x or self.y < camera_y or self.x > camera_x + screen_width or self.y > camera_y + screen_height:
             self.is_active = False
 
     def draw(self, camera_x, camera_y):
@@ -101,6 +101,8 @@ class Character:
         self.arrows = []
         self.attack_cooldown_time = 0.5
         self.last_attack_time = 0
+        self.mouse_held = False
+        self.keyboard_active = False
 
     def take_damage(self, damage):
         if not self.is_dead:
@@ -119,7 +121,7 @@ class Character:
         self.hp = 62
         self.is_dead = False
 
-    def update(self):
+    def update(self, camera_x, camera_y):
         if not self.is_dead:
             if self.is_attacking:
                 self.attack_frame += self.attack_frame_speed
@@ -131,7 +133,8 @@ class Character:
                 distance = math.sqrt(dx ** 2 + dy ** 2)
                 if distance < self.speed:
                     self.x, self.y = self.target_x, self.target_y
-                    self.is_moving = False
+                    if not self.mouse_held:
+                        self.is_moving = False
                 else:
                     self.x += (dx / distance) * self.speed
                     self.y += (dy / distance) * self.speed
@@ -144,7 +147,7 @@ class Character:
                 if self.frame_delay == 0:
                     self.frame = (self.frame + 1) % len(idle_sprites[self.direction])
         for arrow in self.arrows:
-            arrow.update()
+            arrow.update(800, 600, camera_x, camera_y)
         self.arrows = [arrow for arrow in self.arrows if arrow.is_active]
 
     def draw(self, camera_x, camera_y, walk_sprites, idle_sprites, attack_sprites):
@@ -164,7 +167,6 @@ class Character:
             screen_width, screen_height = 800, 600
             dead_sign.draw(screen_width // 2, screen_height // 2)
 
-
     def move_to(self, x, y):
         if not self.is_dead and not self.is_attacking:
             self.target_x, self.target_y = x, y
@@ -175,6 +177,7 @@ class Character:
         current_time = time.time()
         if not self.is_dead and current_time - self.last_attack_time >= self.attack_cooldown_time:
             self.last_attack_time = current_time
+            self.direction = self.calculate_direction(target_x, target_y)
 
             arrow = Arrow(self.x, self.y, target_x, target_y)
             self.arrows.append(arrow)
@@ -197,18 +200,31 @@ class Character:
 
     def stop(self):
         self.is_moving = False
-        self.is_following_mouse = False
+        self.target_x = self.x
+        self.target_y = self.y
 
-    def handle_event(self, event):
-        if self.is_dead:
-            if event.type == pico2d.SDL_KEYDOWN:
-                if event.key == pico2d.SDLK_RETURN:
-                    self.respawn()
-                    return True
-                elif event.key == pico2d.SDLK_ESCAPE:
-                    return False
-            return True
-        return True
+    def handle_event(self, event, camera):
+        if event.type == pico2d.SDL_MOUSEBUTTONDOWN:
+            if event.button == pico2d.SDL_BUTTON_RIGHT:
+                self.mouse_held = True
+                mouse_x = (event.x if event.x is not None else 0) + camera.x
+                mouse_y = (600 - (event.y if event.y is not None else 0)) + camera.y
+                self.move_to(mouse_x, mouse_y)
+            elif event.button == pico2d.SDL_BUTTON_LEFT:
+                mouse_x = (event.x if event.x is not None else 0) + camera.x
+                mouse_y = (600 - (event.y if event.y is not None else 0)) + camera.y
+                self.attack(mouse_x, mouse_y)
+
+        elif event.type == pico2d.SDL_MOUSEBUTTONUP and event.button == pico2d.SDL_BUTTON_RIGHT:
+            self.mouse_held = False
+            self.stop()
+
+        if event.type == pico2d.SDL_MOUSEMOTION and self.mouse_held:
+            mouse_x = event.x + camera.x
+            mouse_y = 600 - event.y + camera.y
+            self.move_to(mouse_x, mouse_y)
+            self.is_moving = True
+
 
 def handle_character_events(character, camera, monsters):
     events = pico2d.get_events()
@@ -218,27 +234,17 @@ def handle_character_events(character, camera, monsters):
         elif event.type == pico2d.SDL_KEYDOWN and event.key == pico2d.SDLK_ESCAPE:
             return False
         elif character.is_dead:
-            return character.handle_event(event)
+            return character.handle_event(event, camera)
         elif event.type == pico2d.SDL_MOUSEBUTTONDOWN:
-            if event.button == pico2d.SDL_BUTTON_LEFT:
-                mouse_x = (event.x if event.x is not None else 0) + (camera.x if camera.x is not None else 0)
-                mouse_y = (600 - event.y if event.y is not None else 0) + (camera.y if camera.y is not None else 0)
-                character.attack(mouse_x, mouse_y)
-                direction = character.calculate_direction(mouse_x, mouse_y)
-                character.direction = direction
-                character.is_attacking = True
-            elif event.button == pico2d.SDL_BUTTON_RIGHT:
-                character.mouse_down_time = time.time()
+            if event.button == pico2d.SDL_BUTTON_RIGHT:
                 character.mouse_held = True
-                mouse_x = (event.x if event.x is not None else 0) + (camera.x if camera.x is not None else 0)
-                mouse_y = (600 - event.y if event.y is not None else 0) + (camera.y if camera.y is not None else 0)
-                character.move_to(mouse_x, mouse_y)
         elif event.type == pico2d.SDL_MOUSEBUTTONUP and event.button == pico2d.SDL_BUTTON_RIGHT:
             character.mouse_held = False
             character.stop()
-        elif character.mouse_held:
-            mouse_x, mouse_y = event.x, 600 - event.y
-            mouse_x += camera.x if camera.x is not None else 0
-            mouse_y += camera.y if camera.y is not None else 0
-            character.move_to(mouse_x, mouse_y)
+        elif event.type == pico2d.SDL_MOUSEMOTION and character.mouse_held:
+            mouse_x = (event.x if event.x is not None else 0) + camera.x
+            mouse_y = (600 - (event.y if event.y is not None else 0)) + camera.y
+            character.x += (mouse_x - character.x) * 0.1
+            character.y += (mouse_y - character.y) * 0.1
+            character.direction = character.calculate_direction(mouse_x, mouse_y)
     return True

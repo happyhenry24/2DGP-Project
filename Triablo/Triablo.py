@@ -7,7 +7,6 @@ import hud
 pico2d.open_canvas(800, 600)
 
 map_drawer.load_tiles()
-
 cc.load_character_sprites()
 mc.load_spike_fiend_images()
 
@@ -30,13 +29,28 @@ game_hud = hud.HUD(800, 600)
 running = True
 while running:
 
-    running = cc.handle_character_events(character, camera, mc.monsters)
-
     events = pico2d.get_events()
-    game_hud.handle_hud_events(events)
+
+    mouse_events = [e for e in events if
+                    e.type in (pico2d.SDL_MOUSEBUTTONDOWN, pico2d.SDL_MOUSEBUTTONUP, pico2d.SDL_MOUSEMOTION)]
+
+    keyboard_events = [e for e in events if e.type in (pico2d.SDL_KEYDOWN, pico2d.SDL_KEYUP)]
+
+    for event in mouse_events:
+        character.handle_event(event, camera)
+
+    for event in keyboard_events:
+        game_hud.handle_hud_events([event])
+
+    for event in events:
+        if event.type == pico2d.SDL_QUIT:
+            running = False
+        elif event.type == pico2d.SDL_KEYDOWN and event.key == pico2d.SDLK_ESCAPE:
+            running = False
 
     if not character.is_dead:
-        character.update()
+        character.update(camera.x, camera.y)
+
     mc.update_monsters(character.x, character.y, character)
     camera.update(character.x, character.y)
 

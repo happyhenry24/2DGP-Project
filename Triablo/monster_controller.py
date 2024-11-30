@@ -290,4 +290,3 @@ def check_arrow_collision(arrows):
                 monster.receive_damage(5)
                 arrow.is_active = False
                 break
-
