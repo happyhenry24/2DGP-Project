@@ -280,3 +280,14 @@ def draw_monsters(player_y, camera_x, camera_y):
 def update_monsters(player_x, player_y, character):
     for monster in monsters:
         monster.update(player_x, player_y, character)
+    check_arrow_collision(character.arrows)
+
+
+def check_arrow_collision(arrows):
+    for arrow in arrows:
+        for monster in monsters:
+            if math.sqrt((monster.x - arrow.x) ** 2 + (monster.y - arrow.y) ** 2) <= 30:
+                monster.receive_damage(5)
+                arrow.is_active = False
+                break
+
