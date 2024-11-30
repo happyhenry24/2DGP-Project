@@ -33,7 +33,7 @@ class MagicArrow(Arrow):
     def update(self, screen_width, screen_height, camera_x, camera_y):
         super().update(screen_width, screen_height, camera_x, camera_y)
         if self.is_active:
-            self.frame = (self.frame + 1) % len(self.images)  # 프레임 업데이트
+            self.frame = (self.frame + 1) % len(self.images)
 
     def draw(self, camera_x, camera_y):
         if self.images and self.is_active:
@@ -63,9 +63,14 @@ class SkillsManager:
         else:
             self.current_mode = None
 
-    def create_arrow(self, x, y, target_x, target_y):
+    def create_arrow(self, x, y, target_x, target_y, character):
         if self.current_mode == "Magic_Arrow":
-            return MagicArrow(x, y, target_x, target_y)
+            mana_cost = 5
+            if character.mana >= mana_cost:
+                character.mana = max(0, character.mana - mana_cost)
+                return MagicArrow(x, y, target_x, target_y)
+            else:
+                return None
         return Arrow(x, y, target_x, target_y,
                      image_path='C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Arrow/tile004.png')
 

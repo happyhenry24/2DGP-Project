@@ -77,6 +77,7 @@ class Character:
         self.mouse_held = False
         self.keyboard_active = False
         self.skills_manager = None
+        self.mana = 62
 
     def take_damage(self, damage):
         if not self.is_dead:
@@ -152,10 +153,10 @@ class Character:
             self.last_attack_time = current_time
             self.direction = self.calculate_direction(target_x, target_y)
 
-            arrow = self.skills_manager.create_arrow(self.x, self.y, target_x, target_y)
-            self.arrows.append(arrow)
-
-            self.is_attacking = True
+            arrow = self.skills_manager.create_arrow(self.x, self.y, target_x, target_y, self)
+            if arrow:
+                self.arrows.append(arrow)
+                self.is_attacking = True
 
     def calculate_direction(self, target_x, target_y):
         angle = math.degrees(math.atan2(target_y - self.y, target_x - self.x))

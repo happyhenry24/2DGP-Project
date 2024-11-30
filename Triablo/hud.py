@@ -19,6 +19,7 @@ class HUD:
         }
 
         self.hp_images = self.load_images([f"HP/HPBarVar1_{i:02}.png" for i in range(63)])
+        self.mana_images = self.load_images([f"Mana/ManaBarVar1_{i:02}.png" for i in range(63)])
         self.skill_images = self.load_images({
             'Magic_Arrow': "Magic_Arrow.png",
             'Magic_Arrow_Off': "Magic_Arrow_Off.png",
@@ -39,13 +40,23 @@ class HUD:
             return {key: pico2d.load_image(HUD_PATH + path) for key, path in paths.items()}
         return [pico2d.load_image(HUD_PATH + path) for path in paths]
 
-    def draw(self, current_hp, current_mode):
-        back, hp_bar, mana_bar, skill_slots, front, left_demon, right_angel = self.hud_images.values()
+    def draw_mana_bar(self, current_mana):
+        mana_image = self.mana_images[max(0, min(62, current_mana))]
+        self.draw_image(mana_image)
+
+    def draw(self, current_hp, current_mana, current_mode):
+        back = self.hud_images["HUD-Back"]
+        front = self.hud_images["HUD-Front"]
+        left_demon = self.hud_images["LeftDemon"]
+        right_angel = self.hud_images["RightAngel"]
+        skill_slots = self.hud_images["SkillSlotsWithButtons"]
+        hp_bar = self.hud_images["HPBarVar1"]
+        mana_bar = self.hud_images["ManaBarVar1"]
 
         back.draw(self.hud_center_x, self.hud_bottom_y, self.screen_width, back.h * self.scale_x)
         self.draw_hp_bar(current_hp, hp_bar)
+        self.draw_mana_bar(current_mana)
 
-        self.draw_image(mana_bar, x_offset=0, y_offset=0, right_align=True)
         skill_slots.draw(self.hud_center_x, self.hud_bottom_y, skill_slots.w * self.scale_x,
                          skill_slots.h * self.scale_x)
         self.draw_image(left_demon, x_offset=0, y_offset=0)

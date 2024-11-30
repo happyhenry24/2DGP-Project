@@ -64,7 +64,7 @@ while running:
     else:
         character.draw(camera.x, camera.y, cc.walk_sprites, cc.idle_sprites, cc.attack_sprites)
 
-    game_hud.draw(character.hp, skills_manager.get_current_mode())
+    game_hud.draw(character.hp, character.mana, skills_manager.get_current_mode())
     pico2d.update_canvas()
     pico2d.delay(0.01)
 
