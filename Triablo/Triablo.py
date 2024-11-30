@@ -3,6 +3,7 @@ import map_drawer
 import character_controller as cc
 import monster_controller as mc
 import hud
+import skills
 
 pico2d.open_canvas(800, 600)
 
@@ -21,26 +22,23 @@ class Camera:
 
 character = cc.Character()
 camera = Camera(800, 600)
-
 mc.generate_monsters(3600, 3600)
 
 game_hud = hud.HUD(800, 600)
+skills_manager = skills.SkillsManager()
 
 running = True
 while running:
-
     events = pico2d.get_events()
 
     mouse_events = [e for e in events if
                     e.type in (pico2d.SDL_MOUSEBUTTONDOWN, pico2d.SDL_MOUSEBUTTONUP, pico2d.SDL_MOUSEMOTION)]
-
     keyboard_events = [e for e in events if e.type in (pico2d.SDL_KEYDOWN, pico2d.SDL_KEYUP)]
 
     for event in mouse_events:
         character.handle_event(event, camera)
 
-    for event in keyboard_events:
-        game_hud.handle_hud_events([event])
+    skills_manager.handle_input(keyboard_events)
 
     for event in events:
         if event.type == pico2d.SDL_QUIT:
@@ -63,7 +61,7 @@ while running:
     else:
         character.draw(camera.x, camera.y, cc.walk_sprites, cc.idle_sprites, cc.attack_sprites)
 
-    game_hud.draw(character.hp)
+    game_hud.draw(character.hp, skills_manager.get_current_mode())
     pico2d.update_canvas()
     pico2d.delay(0.01)
 
