@@ -142,6 +142,60 @@ class MultipleArrow:
     def get_arrows(self):
         return self.arrows
 
+class Explosion:
+    def __init__(self, x, y, damage=10):
+        self.x, self.y = x, y
+        self.damage = damage
+        self.frames = [
+            pico2d.load_image(f'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Explosion/tile{i:03}.png')
+            for i in range(15)
+        ]
+        self.current_frame = 0
+        self.active = True
+        self.start_time = time.time()
+        self.collision_detected = False
+
+    def update(self, monsters):
+        if not self.active:
+            return
+        elapsed_time = time.time() - self.start_time
+        self.current_frame = int(elapsed_time * 15)
+        if self.current_frame >= len(self.frames):
+            self.active = False
+        if not self.collision_detected:
+            for monster in monsters:
+                if not monster.is_dead:
+                    distance_squared = (monster.x - self.x) ** 2 + (monster.y - self.y) ** 2
+                    if distance_squared <= (30 ** 2):
+                        monster.receive_damage(self.damage)
+                        self.collision_detected = True
+                        break
+
+    def draw(self, camera_x, camera_y):
+        if self.active:
+            self.frames[self.current_frame].draw(self.x - camera_x, self.y - camera_y + 100)
+
+
+class ExplodingArrow(Arrow):
+    def __init__(self, x, y, target_x, target_y, image_path=None):
+        super().__init__(x, y, target_x, target_y, damage=10, image_path=image_path)
+        self.explosion_triggered = False
+
+    def update(self, screen_width, screen_height, camera_x, camera_y, explosions, monsters):
+        if not self.explosion_triggered:
+            super().update(screen_width, screen_height, camera_x, camera_y)
+            for monster in monsters:
+                if math.sqrt((self.x - monster.x) ** 2 + (self.y - monster.y) ** 2) <= 30:
+                    self.is_active = False
+                    self.explosion_triggered = True
+                    explosions.append(Explosion(self.x, self.y))
+                    break
+
+    def draw(self, camera_x, camera_y):
+        if not self.explosion_triggered:
+            super().draw(camera_x, camera_y)
+
+
 class SkillsManager:
     def __init__(self):
         self.current_mode = None
@@ -196,12 +250,26 @@ class SkillsManager:
                 return multi_arrow.get_arrows()
             else:
                 return []
+        if self.current_mode == "Exploding_Arrow":
+            mana_cost = 10
+            if character.mana >= mana_cost:
+                character.mana = max(0, character.mana - mana_cost)
+                return [
+                    ExplodingArrow(
+                        x, y, target_x, target_y,
+                        image_path='C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Arrow/tile004.png'
+                    )
+                ]
+            else:
+                return []
+
         return [
             Arrow(
                 x, y, target_x, target_y,
                 image_path='C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Arrow/tile004.png'
             )
         ]
+
 
     def get_current_mode(self):
         return self.current_mode or "None"

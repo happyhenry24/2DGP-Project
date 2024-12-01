@@ -30,6 +30,8 @@ mc.generate_monsters(3600, 3600)
 
 game_hud = hud.HUD(800, 600)
 
+explosions = []
+
 running = True
 while running:
     events = pico2d.get_events()
@@ -50,10 +52,15 @@ while running:
             running = False
 
     if not character.is_dead:
-        character.update(camera.x, camera.y)
+        character.update(camera.x, camera.y, explosions)
 
     mc.update_monsters(character.x, character.y, character)
     skills.update_fire_paths(800, 600, camera.x, camera.y, mc.monsters)
+
+    for explosion in explosions:
+        explosion.update(mc.monsters)
+
+    explosions = [e for e in explosions if e.active]
 
     camera.update(character.x, character.y)
 
@@ -61,6 +68,9 @@ while running:
     map_drawer.draw_map(camera.x, camera.y)
     skills.draw_fire_paths(camera.x, camera.y)
     mc.draw_monsters(character.y, camera.x, camera.y)
+
+    for explosion in explosions:
+        explosion.draw(camera.x, camera.y)
 
     if character.is_dead:
         character.draw_death_message()

@@ -4,6 +4,8 @@ import time
 import monster_controller as mc
 
 from skills import MagicArrow
+from skills import ExplodingArrow
+
 
 
 direction_angle_mapping = {
@@ -95,7 +97,7 @@ class Character:
         self.hp = 62
         self.is_dead = False
 
-    def update(self, camera_x, camera_y):
+    def update(self, camera_x, camera_y, explosions):
         if not self.is_dead:
             if self.is_attacking:
                 self.attack_frame += self.attack_frame_speed
@@ -121,7 +123,10 @@ class Character:
                 if self.frame_delay == 0:
                     self.frame = (self.frame + 1) % len(idle_sprites[self.direction])
         for arrow in self.arrows:
-            arrow.update(800, 600, camera_x, camera_y)
+            if isinstance(arrow, ExplodingArrow):
+                arrow.update(800, 600, camera_x, camera_y, explosions, mc.monsters)
+            else:
+                arrow.update(800, 600, camera_x, camera_y)
         self.arrows = [arrow for arrow in self.arrows if arrow.is_active]
 
     def draw(self, camera_x, camera_y, walk_sprites, idle_sprites, attack_sprites):
