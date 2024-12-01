@@ -2,7 +2,7 @@ import pico2d
 import math
 import time
 
-active_fire_paths = []  # 현재 활성화된 불장판 리스트
+active_fire_paths = []
 
 
 class Arrow:
@@ -47,14 +47,14 @@ class FirePath:
     def __init__(self, x, y):
         self.x, self.y = x, y
         self.start_time = time.time()
-        self.duration = 5  # 5초 지속
+        self.duration = 5
         self.create_frames = [
             pico2d.load_image(f'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Fire_Arrow/tile{i:03}.png')
-            for i in range(13)  # tile000 ~ tile012
+            for i in range(13)
         ]
         self.loop_frames = [
             pico2d.load_image(f'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Fire_Arrow/tile{i:03}.png')
-            for i in range(13, 26)  # tile013 ~ tile025
+            for i in range(13, 26)
         ]
         self.destroy_frames = self.create_frames[::-1]
         self.frame_index = 0
@@ -94,7 +94,6 @@ class FireArrow(Arrow):
     def update(self, screen_width, screen_height, camera_x, camera_y):
         super().update(screen_width, screen_height, camera_x, camera_y)
         if self.is_active:
-            # 일정 거리마다 불장판 생성
             if len(active_fire_paths) == 0 or \
                math.sqrt((self.x - active_fire_paths[-1].x) ** 2 + (self.y - active_fire_paths[-1].y) ** 2) >= 15:
                 active_fire_paths.append(FirePath(self.x, self.y))
@@ -110,11 +109,10 @@ def update_fire_paths(screen_width, screen_height, camera_x, camera_y, monsters)
         for monster in monsters:
             if not monster.is_dead:
                 distance_squared = (monster.x - fire_path.x) ** 2 + (monster.y - fire_path.y) ** 2
-                if distance_squared <= (15 ** 2):  # 반지름 15의 충돌 범위
-                    if not hasattr(monster, "last_damage_time") or time.time() - monster.last_damage_time >= 0.5:  # 시간 간격 0.5초
+                if distance_squared <= (15 ** 2):
+                    if not hasattr(monster, "last_damage_time") or time.time() - monster.last_damage_time >= 0.5:
                         monster.receive_damage(2)
                         monster.last_damage_time = time.time()
-    # 비활성화된 불장판 제거
     active_fire_paths = [path for path in active_fire_paths if path.is_active()]
 
 
@@ -122,6 +120,27 @@ def draw_fire_paths(camera_x, camera_y):
     for fire_path in active_fire_paths:
         fire_path.draw(camera_x, camera_y)
 
+class MultipleArrow:
+    def __init__(self, x, y, base_angle, damage=2, image_path=None):
+        self.arrows = []
+        self.base_angle = base_angle
+        self.create_arrows(x, y, damage, image_path)
+
+    def create_arrows(self, x, y, damage, image_path):
+        angles = [self.base_angle + offset for offset in [0, 10, 20, 30, -10, -20, -30]]
+        for angle in angles:
+            arrow = Arrow(
+                x=x,
+                y=y,
+                target_x=x + math.cos(math.radians(angle)) * 100,
+                target_y=y + math.sin(math.radians(angle)) * 100,
+                damage=damage,
+                image_path=image_path
+            )
+            self.arrows.append(arrow)
+
+    def get_arrows(self):
+        return self.arrows
 
 class SkillsManager:
     def __init__(self):
@@ -150,23 +169,39 @@ class SkillsManager:
             mana_cost = 5
             if character.mana >= mana_cost:
                 character.mana = max(0, character.mana - mana_cost)
-                return MagicArrow(x, y, target_x, target_y)
+                return [MagicArrow(x, y, target_x, target_y)]
             else:
-                return None
+                return []
         elif self.current_mode == "Fire_Arrow":
             mana_cost = 10
             if character.mana >= mana_cost:
                 character.mana = max(0, character.mana - mana_cost)
-                return FireArrow(
-                    x, y, target_x, target_y,
+                return [
+                    FireArrow(
+                        x, y, target_x, target_y,
+                        image_path='C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Arrow/tile004.png'
+                    )
+                ]
+            else:
+                return []
+        if self.current_mode == "Multiple_Arrow":
+            mana_cost = 7
+            if character.mana >= mana_cost:
+                character.mana = max(0, character.mana - mana_cost)
+                base_angle = math.degrees(math.atan2(target_y - y, target_x - x))
+                multi_arrow = MultipleArrow(
+                    x, y, base_angle, damage=2,
                     image_path='C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Arrow/tile004.png'
                 )
+                return multi_arrow.get_arrows()
             else:
-                return None
-        return Arrow(
-            x, y, target_x, target_y,
-            image_path='C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Arrow/tile004.png'
-        )
+                return []
+        return [
+            Arrow(
+                x, y, target_x, target_y,
+                image_path='C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/Arrow/tile004.png'
+            )
+        ]
 
     def get_current_mode(self):
         return self.current_mode or "None"

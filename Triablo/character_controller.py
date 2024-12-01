@@ -153,9 +153,9 @@ class Character:
             self.last_attack_time = current_time
             self.direction = self.calculate_direction(target_x, target_y)
 
-            arrow = self.skills_manager.create_arrow(self.x, self.y, target_x, target_y, self)
-            if arrow:
-                self.arrows.append(arrow)
+            arrows = self.skills_manager.create_arrow(self.x, self.y, target_x, target_y, self)
+            if arrows:
+                self.arrows.extend(arrows)
                 self.is_attacking = True
 
     def calculate_direction(self, target_x, target_y):
