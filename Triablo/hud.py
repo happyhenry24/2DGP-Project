@@ -16,6 +16,11 @@ class HUD:
             "HUD-Front": pico2d.load_image(HUD_PATH + "HUD-Front.png"),
             "LeftDemon": pico2d.load_image(HUD_PATH + "LeftDemon.png"),
             "RightAngel": pico2d.load_image(HUD_PATH + "RightAngel.png"),
+            "HP_Potion_Small": pico2d.load_image(HUD_PATH + "HP_Potion_Small.png"),
+            "HP_Potion_Big": pico2d.load_image(HUD_PATH + "HP_Potion_Big.png"),
+            "Mana_Potion_Small": pico2d.load_image(HUD_PATH + "Mana_Potion_Small.png"),
+            "Mana_Potion_Big": pico2d.load_image(HUD_PATH + "Mana_Potion_Big.png"),
+
         }
 
         self.hp_images = self.load_images([f"HP/HPBarVar1_{i:02}.png" for i in range(63)])
@@ -34,6 +39,18 @@ class HUD:
         self.scale_x = screen_width / self.hud_images["HUD-Back"].w
         self.hud_center_x = screen_width // 2
         self.hud_bottom_y = self.hud_images["HUD-Back"].h * self.scale_x / 2
+
+    def draw_potions(self):
+        skill_slots = self.hud_images["SkillSlotsWithButtons"]
+        potion_images = ["HP_Potion_Small", "HP_Potion_Big", "Mana_Potion_Small", "Mana_Potion_Big"]
+        for potion in potion_images:
+            potion_image = self.hud_images[potion]
+            potion_image.draw(
+                self.hud_center_x,
+                self.hud_bottom_y,
+                skill_slots.w * self.scale_x,
+                skill_slots.h * self.scale_x
+            )
 
     def load_images(self, paths):
         if isinstance(paths, dict):
@@ -64,6 +81,7 @@ class HUD:
 
         front.draw(self.hud_center_x, self.hud_bottom_y, front.w * self.scale_x, front.h * self.scale_x)
         self.draw_skills(current_mode)
+        self.draw_potions()
 
     def draw_hp_bar(self, current_hp, hp_bar):
         hp_image = self.hp_images[max(0, min(62, current_hp))]
