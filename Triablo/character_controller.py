@@ -88,9 +88,23 @@ class Character:
         }
 
     def use_potion(self, potion_name, hud_instance):
+        max_hp, max_mana = 62, 62 
         if self.potions.get(potion_name, 0) > 0:
-            self.potions[potion_name] -= 1
-            print(f"Potion {potion_name} used. Remaining: {self.potions[potion_name]}")
+            if potion_name == "HP_Potion_Small" and self.hp < max_hp:
+                self.hp = min(max_hp, self.hp + 20)
+                self.potions[potion_name] -= 1
+            elif potion_name == "HP_Potion_Big" and self.hp < max_hp:
+                self.hp = min(max_hp, self.hp + 40)
+                self.potions[potion_name] -= 1
+            elif potion_name == "Mana_Potion_Small" and self.mana < max_mana:
+                self.mana = min(max_mana, self.mana + 20)
+                self.potions[potion_name] -= 1
+            elif potion_name == "Mana_Potion_Big" and self.mana < max_mana:
+                self.mana = min(max_mana, self.mana + 40)
+                self.potions[potion_name] -= 1
+            else:
+                return
+
             hud_instance.remove_potion(potion_name)
 
     def take_damage(self, damage):
