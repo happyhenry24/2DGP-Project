@@ -200,13 +200,13 @@ class SkillsManager:
     def handle_input(self, events):
         for event in events:
             if event.type == pico2d.SDL_KEYDOWN:
-                if event.key == pico2d.SDLK_1:
+                if event.key == pico2d.SDLK_q:
                     self.switch_mode('Magic_Arrow')
-                elif event.key == pico2d.SDLK_2:
+                elif event.key == pico2d.SDLK_w:
                     self.switch_mode('Fire_Arrow')
-                elif event.key == pico2d.SDLK_3:
+                elif event.key == pico2d.SDLK_e:
                     self.switch_mode('Multiple_Arrow')
-                elif event.key == pico2d.SDLK_4:
+                elif event.key == pico2d.SDLK_r:
                     self.switch_mode('Exploding_Arrow')
 
     def switch_mode(self, new_mode):
