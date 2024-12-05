@@ -80,6 +80,18 @@ class Character:
         self.keyboard_active = False
         self.skills_manager = None
         self.mana = 62
+        self.potions = {
+            "HP_Potion_Small": 1,
+            "HP_Potion_Big": 1,
+            "Mana_Potion_Small": 1,
+            "Mana_Potion_Big": 1,
+        }
+
+    def use_potion(self, potion_name, hud_instance):
+        if self.potions.get(potion_name, 0) > 0:
+            self.potions[potion_name] -= 1
+            print(f"Potion {potion_name} used. Remaining: {self.potions[potion_name]}")
+            hud_instance.remove_potion(potion_name)
 
     def take_damage(self, damage):
         if not self.is_dead:
@@ -182,7 +194,7 @@ class Character:
         self.target_x = self.x
         self.target_y = self.y
 
-    def handle_event(self, event, camera):
+    def handle_event(self, event, camera, hud_instance):
         if event.type == pico2d.SDL_MOUSEBUTTONDOWN:
             if event.button == pico2d.SDL_BUTTON_RIGHT:
                 self.mouse_held = True
@@ -203,6 +215,16 @@ class Character:
             mouse_y = 600 - event.y + camera.y
             self.move_to(mouse_x, mouse_y)
             self.is_moving = True
+
+        if event.type == pico2d.SDL_KEYDOWN:
+            if event.key == pico2d.SDLK_1:
+                self.use_potion("HP_Potion_Small", hud_instance)
+            elif event.key == pico2d.SDLK_2:
+                self.use_potion("HP_Potion_Big", hud_instance)
+            elif event.key == pico2d.SDLK_3:
+                self.use_potion("Mana_Potion_Small", hud_instance)
+            elif event.key == pico2d.SDLK_4:
+                self.use_potion("Mana_Potion_Big", hud_instance)
 
 
 def handle_character_events(character, camera, monsters):

@@ -40,8 +40,11 @@ while running:
                     e.type in (pico2d.SDL_MOUSEBUTTONDOWN, pico2d.SDL_MOUSEBUTTONUP, pico2d.SDL_MOUSEMOTION)]
     keyboard_events = [e for e in events if e.type in (pico2d.SDL_KEYDOWN, pico2d.SDL_KEYUP)]
 
+    for event in keyboard_events:
+        character.handle_event(event, camera, game_hud)
+
     for event in mouse_events:
-        character.handle_event(event, camera)
+        character.handle_event(event, camera, game_hud)
 
     skills_manager.handle_input(keyboard_events)
 

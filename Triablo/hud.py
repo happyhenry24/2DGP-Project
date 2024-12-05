@@ -44,13 +44,18 @@ class HUD:
         skill_slots = self.hud_images["SkillSlotsWithButtons"]
         potion_images = ["HP_Potion_Small", "HP_Potion_Big", "Mana_Potion_Small", "Mana_Potion_Big"]
         for potion in potion_images:
-            potion_image = self.hud_images[potion]
-            potion_image.draw(
-                self.hud_center_x,
-                self.hud_bottom_y,
-                skill_slots.w * self.scale_x,
-                skill_slots.h * self.scale_x
-            )
+            if potion in self.hud_images:
+                potion_image = self.hud_images[potion]
+                potion_image.draw(
+                    self.hud_center_x,
+                    self.hud_bottom_y,
+                    skill_slots.w * self.scale_x,
+                    skill_slots.h * self.scale_x
+                )
+
+    def remove_potion(self, potion_name):
+        if potion_name in self.hud_images:
+            del self.hud_images[potion_name]
 
     def load_images(self, paths):
         if isinstance(paths, dict):
