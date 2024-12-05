@@ -162,14 +162,11 @@ class Explosion:
         self.current_frame = int(elapsed_time * 15)
         if self.current_frame >= len(self.frames):
             self.active = False
-        if not self.collision_detected:
-            for monster in monsters:
-                if not monster.is_dead:
-                    distance_squared = (monster.x - self.x) ** 2 + (monster.y - self.y) ** 2
-                    if distance_squared <= (30 ** 2):
-                        monster.receive_damage(self.damage)
-                        self.collision_detected = True
-                        break
+        for monster in monsters:
+            if not monster.is_dead:
+                distance_squared = (monster.x - self.x) ** 2 + (monster.y - self.y) ** 2
+                if distance_squared <= (150 ** 2):
+                    monster.receive_damage(self.damage)
 
     def draw(self, camera_x, camera_y):
         if self.active:
