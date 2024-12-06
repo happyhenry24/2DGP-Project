@@ -25,7 +25,7 @@ character = cc.Character()
 character.skills_manager = skills_manager
 
 camera = Camera(800, 600)
-mc.generate_monsters(3600, 3600)
+mc.generate_monsters()
 
 game_hud = hud.HUD(800, 600)
 

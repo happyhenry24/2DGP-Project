@@ -5,7 +5,7 @@ import time
 import hud
 
 from skills import FireArrow
-from ASpike_Fiend import get_spike_fiend_data
+from ASpike_Fiend import get_spike_fiend_data, get_hell_bovine_data
 
 direction_order_8 = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE']
 direction_angle_mapping_8 = {
@@ -222,14 +222,19 @@ def monster_hit(monster, damage):
 
 monsters = []
 
-def generate_monsters(center_x, center_y):
+def generate_monsters():
     global monsters
 
-    spike_fiend_data = get_spike_fiend_data()
-    for _ in range(10):
-        rand_x = random.randint(center_x - 200, center_x + 200)
-        rand_y = random.randint(center_y - 200, center_y + 200)
-        monsters.append(Monster(rand_x, rand_y, spike_fiend_data))
+    monster_data_list = [get_spike_fiend_data(), get_hell_bovine_data()]
+
+    for monster_data in monster_data_list:
+        spawn_center_x = monster_data["spawn_center_x"]
+        spawn_center_y = monster_data["spawn_center_y"]
+
+        for _ in range(10 if monster_data["name"] == "Spike Fiend" else 5):
+            rand_x = random.randint(spawn_center_x - 200, spawn_center_x + 200)
+            rand_y = random.randint(spawn_center_y - 200, spawn_center_y + 200)
+            monsters.append(Monster(rand_x, rand_y, monster_data))
 
 def draw_monsters(player_y, camera_x, camera_y):
     for monster in monsters:
