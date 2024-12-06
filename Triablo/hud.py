@@ -1,7 +1,7 @@
 import pico2d
 
 HUD_PATH = "C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/HUD/"
-
+FILTER_PATH = "C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Lords Of Pain - Old School Isometric Assets/user interface/filter/"
 
 class HUD:
     def __init__(self, screen_width, screen_height):
@@ -9,6 +9,7 @@ class HUD:
         self.screen_height = screen_height
 
         self.hud_images = {
+            "FilterVignette": pico2d.load_image(FILTER_PATH + "filter_vignette.png"),
             "HUD-Back": pico2d.load_image(HUD_PATH + "HUD-Back.png"),
             "HPBarVar1": pico2d.load_image(HUD_PATH + "HPBarVar1.png"),
             "ManaBarVar1": pico2d.load_image(HUD_PATH + "ManaBarVar1.png"),
@@ -73,6 +74,8 @@ class HUD:
         self.draw_image(mana_image)
 
     def draw(self, current_hp, current_mana, current_mode):
+        self.hud_images["FilterVignette"].draw(self.screen_width // 2, self.screen_height // 2, self.screen_width, self.screen_height)
+
         back = self.hud_images["HUD-Back"]
         front = self.hud_images["HUD-Front"]
         left_demon = self.hud_images["LeftDemon"]
