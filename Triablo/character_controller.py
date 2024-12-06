@@ -6,15 +6,12 @@ import monster_controller as mc
 from skills import MagicArrow
 from skills import ExplodingArrow
 
-
-
 direction_angle_mapping = {
     'S': (258.75, 281.25), 'SSW': (236.25, 258.75), 'SW': (213.75, 236.25), 'WSW': (191.25, 213.75),
     'W': (168.75, 191.25), 'WNW': (146.25, 168.75), 'NW': (123.75, 146.25), 'NNW': (101.25, 123.75),
     'N': (78.75, 101.25), 'NNE': (56.25, 78.75), 'NE': (33.75, 56.25), 'ENE': (11.25, 33.75),
     'E': (348.75, 11.25), 'ESE': (326.25, 348.75), 'SE': (303.75, 326.25), 'SSE': (281.25, 303.75)
 }
-
 
 walk_sprites = {}
 idle_sprites = {}
@@ -239,7 +236,6 @@ class Character:
                 self.use_potion("Mana_Potion_Small", hud_instance)
             elif event.key == pico2d.SDLK_4:
                 self.use_potion("Mana_Potion_Big", hud_instance)
-
 
 def handle_character_events(character, camera, monsters):
     events = pico2d.get_events()

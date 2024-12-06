@@ -9,7 +9,6 @@ pico2d.open_canvas(800, 600)
 
 map_drawer.load_tiles()
 cc.load_character_sprites()
-mc.load_spike_fiend_images()
 
 skills_manager = skills.SkillsManager()
 
