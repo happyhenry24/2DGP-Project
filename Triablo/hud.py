@@ -2,11 +2,19 @@ import pico2d
 
 HUD_PATH = "C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/HUD/"
 FILTER_PATH = "C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Lords Of Pain - Old School Isometric Assets/user interface/filter/"
+CURSOR_PATH = "C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Lords Of Pain - Old School Isometric Assets/user interface/cursor/"
 
 class HUD:
     def __init__(self, screen_width, screen_height):
         self.screen_width = screen_width
         self.screen_height = screen_height
+        self.cursor_state = "white"
+        self.cursor_images = {
+            "white": pico2d.load_image(CURSOR_PATH + "cursor_gauntlet_white.png"),
+            "blue": pico2d.load_image(CURSOR_PATH + "cursor_gauntlet_blue.png"),
+            "red": pico2d.load_image(CURSOR_PATH + "cursor_gauntlet_red.png"),
+        }
+        self.mouse_x, self.mouse_y = 0, 0
 
         self.hud_images = {
             "FilterVignette": pico2d.load_image(FILTER_PATH + "filter_vignette.png"),
@@ -96,6 +104,7 @@ class HUD:
         front.draw(self.hud_center_x, self.hud_bottom_y, front.w * self.scale_x, front.h * self.scale_x)
         self.draw_skills(current_mode)
         self.draw_potions()
+        self.draw_cursor()
 
     def draw_hp_bar(self, current_hp, hp_bar):
         hp_image = self.hp_images[max(0, min(62, current_hp))]
@@ -118,6 +127,15 @@ class HUD:
         y = (image.h * self.scale_x / 2) + y_offset
         image.draw(x, y, image.w * self.scale_x, image.h * self.scale_x)
 
+    def set_cursor_state(self, state):
+        if state in self.cursor_images:
+            self.cursor_state = state
+
+    def draw_cursor(self):
+        scale = 1.5
+        cursor_image = self.cursor_images[self.cursor_state]
+        cursor_image.draw(self.mouse_x, self.screen_height - self.mouse_y,
+                          cursor_image.w * scale, cursor_image.h * scale)
 
 class MonsterHPBar:
     def __init__(self, monster):

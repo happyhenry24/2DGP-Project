@@ -6,6 +6,7 @@ import hud
 import skills
 
 pico2d.open_canvas(800, 600)
+pico2d.hide_cursor()
 
 map_drawer.load_tiles()
 cc.load_character_sprites()
@@ -44,6 +45,17 @@ while running:
         character.handle_event(event, camera, game_hud)
 
     for event in mouse_events:
+        if event.type == pico2d.SDL_MOUSEMOTION:
+            game_hud.mouse_x, game_hud.mouse_y = event.x, event.y
+        elif event.type == pico2d.SDL_MOUSEBUTTONDOWN:
+            if event.button == pico2d.SDL_BUTTON_RIGHT:
+                game_hud.set_cursor_state("blue")
+            elif event.button == pico2d.SDL_BUTTON_LEFT:
+                game_hud.set_cursor_state("red")
+        elif event.type == pico2d.SDL_MOUSEBUTTONUP:
+            if event.button in (pico2d.SDL_BUTTON_RIGHT, pico2d.SDL_BUTTON_LEFT):
+                game_hud.set_cursor_state("white")
+
         character.handle_event(event, camera, game_hud)
 
     skills_manager.handle_input(keyboard_events)
