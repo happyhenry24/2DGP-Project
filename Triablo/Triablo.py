@@ -30,6 +30,7 @@ mc.generate_monsters()
 game_hud = hud.HUD(800, 600)
 
 explosions = []
+loot_indicators = []
 
 running = True
 while running:
@@ -56,7 +57,10 @@ while running:
     if not character.is_dead:
         character.update(camera.x, camera.y, explosions)
 
-    mc.update_monsters(character.x, character.y, character)
+    mc.update_monsters(character.x, character.y, character, loot_indicators)
+
+    character.check_loot_collision(loot_indicators, game_hud)
+
     skills.update_fire_paths(800, 600, camera.x, camera.y, mc.monsters)
 
     for explosion in explosions:
@@ -70,6 +74,9 @@ while running:
     map_drawer.draw_map(camera.x, camera.y)
     skills.draw_fire_paths(camera.x, camera.y)
     mc.draw_monsters(character.y, camera.x, camera.y)
+
+    for loot in loot_indicators:
+        loot['image'].draw(loot['x'] - camera.x, loot['y'] - camera.y)
 
     for explosion in explosions:
         explosion.draw(camera.x, camera.y)

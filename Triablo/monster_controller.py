@@ -83,10 +83,11 @@ class Monster:
                 self.chasing_on_attack = True
             self.hp_bar.update_hp(self.hp)
 
-    def update(self, player_x, player_y, character):
+    def update(self, player_x, player_y, character, loot_indicators):
         if self.is_dead:
             self.death_frame += 0.2
             if self.death_frame >= len(self.sprites['death'][self.direction]):
+                self.drop_loot(character, loot_indicators)
                 monsters.remove(self)
             return
 
@@ -120,6 +121,22 @@ class Monster:
             self.move_to_spawn()
         else:
             self.patrol()
+
+    def drop_loot(self, character, loot_indicators):
+        if not self.is_dead:
+            return
+        missing_potions = [
+            potion for potion in ["HP_Potion_Small", "HP_Potion_Big", "Mana_Potion_Small", "Mana_Potion_Big"]
+            if character.potions.get(potion, 0) == 0
+        ]
+        if missing_potions and random.random() < 0.1:
+            loot_indicator = {
+                'image': pico2d.load_image(
+                    'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Lords Of Pain - Old School Isometric Assets/user interface/loot-indicator/loot_indicator_yellow.png'),
+                'x': self.x,
+                'y': self.y
+            }
+            loot_indicators.append(loot_indicator)
 
     def patrol(self):
         if not self.is_idle:
@@ -244,9 +261,9 @@ def draw_monsters(player_y, camera_x, camera_y):
         if monster.y <= player_y:
             monster.draw(camera_x, camera_y)
 
-def update_monsters(player_x, player_y, character):
-    for monster in monsters:
-        monster.update(player_x, player_y, character)
+def update_monsters(player_x, player_y, character, loot_indicators):
+    for monster in monsters[:]:
+        monster.update(player_x, player_y, character, loot_indicators)
     check_arrow_collision(character.arrows)
 
 def check_arrow_collision(arrows):

@@ -2,6 +2,7 @@ import pico2d
 import math
 import time
 import monster_controller as mc
+import random
 
 from skills import MagicArrow
 from skills import ExplodingArrow
@@ -114,6 +115,20 @@ class Character:
     def attack_monster(self, monster):
         damage = 2
         mc.monster_hit(monster, damage)
+
+    def check_loot_collision(self, loot_indicators, hud_instance):
+        for loot in loot_indicators:
+            distance = math.sqrt((self.x - loot['x'])**2 + (self.y - loot['y'])**2)
+            if distance < 30:
+                available_potions = [
+                    potion for potion in ["HP_Potion_Small", "HP_Potion_Big", "Mana_Potion_Small", "Mana_Potion_Big"]
+                    if self.potions.get(potion, 0) == 0
+                ]
+                if available_potions:
+                    selected_potion = random.choice(available_potions)
+                    self.potions[selected_potion] = 1
+                    hud_instance.add_potion(selected_potion)
+                loot_indicators.remove(loot)
 
     def respawn(self):
         self.x, self.y = self.spawn_x, self.spawn_y

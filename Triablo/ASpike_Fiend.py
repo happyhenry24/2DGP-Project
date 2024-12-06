@@ -31,7 +31,7 @@ def get_hell_bovine_data():
         "chase_distance": 200,
         "attack_distance": 50,
         "spawn_center_x": 3600,
-        "spawn_center_y": 3200, 
+        "spawn_center_y": 3200,
         "image_paths": {
             "idle": "C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/PC_Computer_Diablo2_Hell_Bovine_Idle/",
             "walk": "C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/PC_Computer_Diablo2_Hell_Bovine_Walk/",

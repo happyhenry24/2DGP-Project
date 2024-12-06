@@ -57,6 +57,12 @@ class HUD:
         if potion_name in self.hud_images:
             del self.hud_images[potion_name]
 
+    def add_potion(self, potion_name):
+        if potion_name not in self.hud_images:
+            self.hud_images[potion_name] = pico2d.load_image(
+                f"C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/HUD/{potion_name}.png"
+            )
+
     def load_images(self, paths):
         if isinstance(paths, dict):
             return {key: pico2d.load_image(HUD_PATH + path) for key, path in paths.items()}
