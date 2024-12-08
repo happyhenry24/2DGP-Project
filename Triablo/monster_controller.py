@@ -33,6 +33,7 @@ class Monster:
     def __init__(self, x, y, monster_data):
         self.x, self.y = x, y
         self.spawn_x, self.spawn_y = x, y
+        self.name = monster_data["name"]
         self.hp = monster_data["hp"]
         self.max_hp = monster_data["hp"]
         self.attack_damage = monster_data["attack_damage"]
@@ -245,13 +246,14 @@ def generate_monsters():
     monster_data_list = [get_spike_fiend_data(), get_hell_bovine_data()]
 
     for monster_data in monster_data_list:
-        spawn_center_x = monster_data["spawn_center_x"]
-        spawn_center_y = monster_data["spawn_center_y"]
 
-        for _ in range(10 if monster_data["name"] == "Spike Fiend" else 5):
-            rand_x = random.randint(spawn_center_x - 200, spawn_center_x + 200)
-            rand_y = random.randint(spawn_center_y - 200, spawn_center_y + 200)
-            monsters.append(Monster(rand_x, rand_y, monster_data))
+        for spawn_x, spawn_y in monster_data["spawn_centers"]:
+            for _ in range(5):
+                rand_x = random.randint(spawn_x - 50, spawn_x + 50)
+                rand_y = random.randint(spawn_y - 50, spawn_y + 50)
+                monsters.append(Monster(rand_x, rand_y, monster_data))
+
+
 
 def draw_monsters(player_y, camera_x, camera_y):
     for monster in monsters:
@@ -269,7 +271,8 @@ def update_monsters(player_x, player_y, character, loot_indicators):
 def check_arrow_collision(arrows):
     for arrow in arrows:
         for monster in monsters:
-            if math.sqrt((monster.x - arrow.x) ** 2 + (monster.y - arrow.y) ** 2) <= 30:
+            hit_range = 60 if monster.name == "Hell_Bovine" else 30
+            if math.sqrt((monster.x - arrow.x) ** 2 + (monster.y - arrow.y) ** 2) <= hit_range:
                 if isinstance(arrow, FireArrow):
                     if not hasattr(monster, "last_fire_arrow_damage_time") or time.time() - monster.last_fire_arrow_damage_time >= 0.5:
                         monster.receive_damage(arrow.damage)
