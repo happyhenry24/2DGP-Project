@@ -53,7 +53,7 @@ def load_character_sprites():
 
 class Character:
     def __init__(self):
-        self.x, self.y = 3200, 3200
+        self.x, self.y = 1500, 1000
         self.spawn_x, self.spawn_y = self.x, self.y
         self.hp = 62
         self.is_dead = False

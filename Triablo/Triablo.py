@@ -1,14 +1,14 @@
 import pico2d
-import map_drawer
 import character_controller as cc
 import monster_controller as mc
 import hud
 import skills
+from map_drawer import MapDrawer
 
 pico2d.open_canvas(800, 600)
 pico2d.hide_cursor()
 
-map_drawer.load_tiles()
+map_drawer = MapDrawer()
 cc.load_character_sprites()
 
 skills_manager = skills.SkillsManager()
@@ -83,7 +83,7 @@ while running:
     camera.update(character.x, character.y)
 
     pico2d.clear_canvas()
-    map_drawer.draw_map(camera.x, camera.y)
+    map_drawer.floor_image.draw(1500 - camera.x, 1000 - camera.y)
     skills.draw_fire_paths(camera.x, camera.y)
     mc.draw_monsters(character.y, camera.x, camera.y)
 
@@ -98,6 +98,7 @@ while running:
     else:
         character.draw(camera.x, camera.y, cc.walk_sprites, cc.idle_sprites, cc.attack_sprites)
 
+    map_drawer.front_image.draw(1500 - camera.x, 1000 - camera.y)
     game_hud.draw(character.hp, character.mana, skills_manager.get_current_mode())
     pico2d.update_canvas()
     pico2d.delay(0.01)
