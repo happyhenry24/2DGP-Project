@@ -3,6 +3,8 @@ import math
 import time
 import monster_controller as mc
 import random
+from map_drawer import MapDrawer
+map_drawer = MapDrawer()
 
 from skills import MagicArrow
 from skills import ExplodingArrow
@@ -133,6 +135,13 @@ class Character:
     def respawn(self):
         self.x, self.y = self.spawn_x, self.spawn_y
         self.hp = 62
+        self.mana = 62
+        self.potions = {
+            "HP_Potion_Small": 1,
+            "HP_Potion_Big": 1,
+            "Mana_Potion_Small": 1,
+            "Mana_Potion_Big": 1,
+        }
         self.is_dead = False
 
     def update(self, camera_x, camera_y, explosions):
@@ -140,26 +149,33 @@ class Character:
             if self.is_attacking:
                 self.attack_frame += self.attack_frame_speed
                 if self.attack_frame >= len(attack_sprites[self.direction]):
-                    self.is_attacking = False
                     self.attack_frame = 0
-            elif self.is_moving:
-                dx, dy = self.target_x - self.x, self.target_y - self.y
-                distance = math.sqrt(dx ** 2 + dy ** 2)
-                if distance < self.speed:
-                    self.x, self.y = self.target_x, self.target_y
-                    if not self.mouse_held:
-                        self.is_moving = False
-                else:
-                    self.x += (dx / distance) * self.speed
-                    self.y += (dy / distance) * self.speed
+                    self.is_attacking = False
+            else:
+                if self.is_moving:
+                    dx, dy = self.target_x - self.x, self.target_y - self.y
+                    distance = math.sqrt(dx ** 2 + dy ** 2)
+                    if distance < self.speed:
+                        self.x, self.y = self.target_x, self.target_y
+                        if not self.mouse_held:
+                            self.is_moving = False
+                    else:
+                        new_x = self.x + (dx / distance) * self.speed
+                        new_y = self.y + (dy / distance) * self.speed
+
+                        if not map_drawer.is_collision(new_x, new_y):
+                            self.x, self.y = new_x, new_y
+                        else:
+                            self.is_moving = False
 
                 self.frame_delay = (self.frame_delay + 1) % self.frame_speed
                 if self.frame_delay == 0:
                     self.frame = (self.frame + 1) % len(walk_sprites[self.direction])
-            else:
-                self.frame_delay = (self.frame_delay + 1) % self.frame_speed
-                if self.frame_delay == 0:
-                    self.frame = (self.frame + 1) % len(idle_sprites[self.direction])
+        else:
+            self.frame_delay = (self.frame_delay + 1) % self.frame_speed
+            if self.frame_delay == 0:
+                self.frame = (self.frame + 1) % len(idle_sprites[self.direction])
+
         for arrow in self.arrows:
             if isinstance(arrow, ExplodingArrow):
                 arrow.update(800, 600, camera_x, camera_y, explosions, mc.monsters)

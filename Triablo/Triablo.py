@@ -1,11 +1,11 @@
 import pico2d
+pico2d.open_canvas(800, 600)
+
 import character_controller as cc
 import monster_controller as mc
 import hud
 import skills
 from map_drawer import MapDrawer
-
-pico2d.open_canvas(800, 600)
 pico2d.hide_cursor()
 
 map_drawer = MapDrawer()
@@ -44,11 +44,19 @@ while running:
     for event in keyboard_events:
         if character.is_dead and event.type == pico2d.SDL_KEYDOWN and event.key == pico2d.SDLK_RETURN:
             character.respawn()
+            character.potions = {
+                "HP_Potion_Small": 1,
+                "HP_Potion_Big": 1,
+                "Mana_Potion_Small": 1,
+                "Mana_Potion_Big": 1,
+            }
+            game_hud.update_potions(character)
             mc.monsters.clear()
             mc.generate_monsters()
             explosions.clear()
             loot_indicators.clear()
             camera.update(character.x, character.y)
+
         else:
             character.handle_event(event, camera, game_hud)
 

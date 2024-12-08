@@ -6,9 +6,9 @@ def get_spike_fiend_data():
         "chase_distance": 200,
         "attack_distance": 50,
         "spawn_centers": [
-            (1550, 1025),
-            (1800, 750),
-            (1200, 700)
+            (1650, 950),
+            (1150, 700),
+            (1775, 1550)
         ],
         "image_paths": {
             "idle": "C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/PC_Computer_Diablo2_ASpike_Fiend_Idle/",
@@ -34,8 +34,8 @@ def get_hell_bovine_data():
         "chase_distance": 200,
         "attack_distance": 50,
         "spawn_centers": [
-            (1200, 1225),
-            (650, 950)
+            (1200, 1300),
+            (700, 1000)
         ],
         "image_paths": {
             "idle": "C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/PC_Computer_Diablo2_Hell_Bovine_Idle/",

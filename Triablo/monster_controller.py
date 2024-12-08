@@ -6,6 +6,8 @@ import hud
 
 from skills import FireArrow
 from ASpike_Fiend import get_spike_fiend_data, get_hell_bovine_data
+from map_drawer import MapDrawer
+map_drawer = MapDrawer()
 
 direction_order_8 = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE']
 direction_angle_mapping_8 = {
@@ -130,7 +132,7 @@ class Monster:
             potion for potion in ["HP_Potion_Small", "HP_Potion_Big", "Mana_Potion_Small", "Mana_Potion_Big"]
             if character.potions.get(potion, 0) == 0
         ]
-        if missing_potions and random.random() < 0.1:
+        if missing_potions and random.random() < 0.5:
             loot_indicator = {
                 'image': pico2d.load_image(
                     'C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Lords Of Pain - Old School Isometric Assets/user interface/loot-indicator/loot_indicator_yellow.png'),
@@ -166,8 +168,10 @@ class Monster:
         angle = math.degrees(math.atan2(dy, dx)) % 360
         self.direction = self.get_direction_by_angle(angle)
         distance = math.sqrt(dx ** 2 + dy ** 2)
-        self.x += (dx / distance) * self.speed
-        self.y += (dy / distance) * self.speed
+        new_x = self.x + (dx / distance) * self.speed
+        new_y = self.y + (dy / distance) * self.speed
+        if not map_drawer.is_collision(new_x, new_y):
+            self.x, self.y = new_x, new_y
         self.update_frame()
 
     def move_to_spawn(self):
@@ -248,7 +252,7 @@ def generate_monsters():
     for monster_data in monster_data_list:
 
         for spawn_x, spawn_y in monster_data["spawn_centers"]:
-            for _ in range(5):
+            for _ in range(7):
                 rand_x = random.randint(spawn_x - 50, spawn_x + 50)
                 rand_y = random.randint(spawn_y - 50, spawn_y + 50)
                 monsters.append(Monster(rand_x, rand_y, monster_data))

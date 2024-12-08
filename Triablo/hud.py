@@ -72,6 +72,13 @@ class HUD:
                 f"C:/Users/Creator/Documents/2DGP/2DGP-Project/Triablo/Othersprite/HUD/{potion_name}.png"
             )
 
+    def update_potions(self, character):
+        for potion_name in ["HP_Potion_Small", "HP_Potion_Big", "Mana_Potion_Small", "Mana_Potion_Big"]:
+            if character.potions.get(potion_name, 0) > 0:
+                self.add_potion(potion_name)
+            else:
+                self.remove_potion(potion_name)
+
     def load_images(self, paths):
         if isinstance(paths, dict):
             return {key: pico2d.load_image(HUD_PATH + path) for key, path in paths.items()}
