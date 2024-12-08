@@ -42,7 +42,15 @@ while running:
     keyboard_events = [e for e in events if e.type in (pico2d.SDL_KEYDOWN, pico2d.SDL_KEYUP)]
 
     for event in keyboard_events:
-        character.handle_event(event, camera, game_hud)
+        if character.is_dead and event.type == pico2d.SDL_KEYDOWN and event.key == pico2d.SDLK_RETURN:
+            character.respawn()
+            mc.monsters.clear()
+            mc.generate_monsters()
+            explosions.clear()
+            loot_indicators.clear()
+            camera.update(character.x, character.y)
+        else:
+            character.handle_event(event, camera, game_hud)
 
     for event in mouse_events:
         if event.type == pico2d.SDL_MOUSEMOTION:
@@ -93,13 +101,15 @@ while running:
     for explosion in explosions:
         explosion.draw(camera.x, camera.y)
 
-    if character.is_dead:
-        character.draw_death_message()
-    else:
+    if not character.is_dead:
         character.draw(camera.x, camera.y, cc.walk_sprites, cc.idle_sprites, cc.attack_sprites)
 
     map_drawer.front_image.draw(1500 - camera.x, 1000 - camera.y)
     game_hud.draw(character.hp, character.mana, skills_manager.get_current_mode())
+
+    if character.is_dead:
+        character.draw_death_message()
+
     pico2d.update_canvas()
     pico2d.delay(0.01)
 
